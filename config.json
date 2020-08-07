@@ -1,6 +1,8 @@
 {
     "fileExts": ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm", "*.m4v", "*.asf", "*.wmv", "*.webm"],
     "fileDir": "original",
-    "getInfoInterval": "5",
-    "fileNameFormat": "{title}qq{length}"
+    "getInfoInterval": 1,
+    "fileNameFormat": "{title}++{length}",
+    "language": "tw",
+    "saveAlbum": true
 }

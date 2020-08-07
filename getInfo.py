@@ -14,7 +14,8 @@ def CreatePrettyPrinter():
     return pprint.PrettyPrinter(indent=0, width=60)
 
 class JAVInfoGetter:
-    def __init__(self):
+    def __init__(self, setting):
+        self.setting = setting
         self.dbpath = Path("db.json")
 
         if not self.dbpath.exists(): # XXX: move db out of infogetter
@@ -30,15 +31,15 @@ class JAVInfoGetter:
     def Get(self, bangou):
         if bangou in self.dbdata:
             print(f"find [{bangou}] info in db")
-            return self.dbdata[bangou]
+            return self.dbdata[bangou], True
 
-        response = requests.get('http://www.javlibrary.com/tw/vl_searchbyid.php?keyword=' + bangou) # TODO: different lang
+        response = requests.get("http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou)
         self.soup = BeautifulSoup(response.text, "html.parser")
         info = dict()
 
         #print(soup.prettify())
         info["bangou"] = bangou
-        info["title"] = self.ParseTitle()
+        info["title"] = self.ParseTitle() # TODO: remove bangou info in title # title may include actor name
         info["tags"] = self.ParseTag()
         info["director"] = self.ParseDirector()
         info["maker"] = self.ParseMaker()
@@ -46,12 +47,17 @@ class JAVInfoGetter:
         info["album"] = self.ParseAlbum()
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
+        # TODO: class="previewthumbs"
+
+        if not info["title"]:
+            print(f"Parse {bangou} failed")
+            return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
         self.AddData(info)
         time.sleep(setting.getInfoInterval)
 
-        return info
+        return info, True
 
     def ParseTitle(self):
         try:
@@ -139,9 +145,9 @@ class FileNameParser:
     def ParseBangou(self, fileName):
         try:
             bangou = re.search("\w+\-*\d+", fileName).group(0)
+            return bangou
         except:
             return ""
-        return bangou
 
 class Setting:
     def __init__(self):
@@ -152,8 +158,10 @@ class Setting:
             try:
                 self.fileExts = settingJson["fileExts"]
                 self.fileDir = settingJson["fileDir"]
-                self.getInfoInterval = int(settingJson["getInfoInterval"])
+                self.getInfoInterval = settingJson["getInfoInterval"]
                 self.fileNameFormat = settingJson["fileNameFormat"]
+                self.language = settingJson["language"]
+                self.saveAlbum = settingJson["saveAlbum"]
             except:
                 print("read config file failed")
                 exit(1)
@@ -174,9 +182,25 @@ class Setting:
         if path.name == newName:
             print(f"File [{oldName}] no need to rename")
             return
-        path = path.rename(path.parents[0] / newName)
+        path = path.rename(path.parents[0] / newName) # TODO: handle rename failed, like no file
         newName = str(path)
         print(f"Rename [{oldName}] to [{newName}]")
+
+    def SaveAlbum(self, info, path):
+        if not self.saveAlbum:
+            return
+
+        albumFileName = info["bangou"] + ".jpg"
+        albumPath = Path(path.parents[0] / albumFileName)
+
+        if albumPath.exists():
+            print(f"Album [{str(albumPath)}] already exists, do nothing")
+            return
+        with open(albumPath, 'wb') as albumFile:
+            print(f"Save album as [{str(albumPath)}]")
+            fileURL = "http:" + info["album"]
+            fileObject = requests.get(fileURL)
+            albumFile.write(fileObject.content)
 
 if __name__ == "__main__":
     # TODO: do real file test
@@ -184,12 +208,15 @@ if __name__ == "__main__":
     fileNameParser = FileNameParser(setting.fileExts)
     fileNames, bangous = fileNameParser.Parse(setting.fileDir)
 
-    infoGetter = JAVInfoGetter()
+    infoGetter = JAVInfoGetter(setting)
 
     # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
-    # TODO: save album
+    # TODO: deal with multiple part of the same bangou
     for bangou in bangous:
-        info = infoGetter.Get(bangou)
+        info, success = infoGetter.Get(bangou)
+        if not success:
+            continue
         setting.Rename(info, fileNames[bangou])
+        setting.SaveAlbum(info, fileNames[bangou])
 
     infoGetter.SaveData()
