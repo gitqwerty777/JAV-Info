@@ -10,19 +10,25 @@ from bs4 import BeautifulSoup
 def getText(element):
     return element.getText()
 
+def CreatePrettyPrinter():
+    return pprint.PrettyPrinter(indent=0, width=60)
+
 class JAVInfoGetter:
     def __init__(self):
-        self.dbfile = open("db.json", "w+")
-
-        dbtext = self.dbfile.read()
-        if dbtext:
-            self.dbdata = json.load()    
+        dbpath = Path("db.json") # TODO: use it
+        if not os.path.exists("db.json"): # XXX: move db out of infogetter
+            os.mknod("db.json")
+            self.dbdata = {}
         else:
-            self.dbdata = dict()
+            with open("db.json") as self.dbfile:
+                self.dbdata = json.load(self.dbfile)
+
+        print("read db")
+        #print(self.dbdata)
 
     def Get(self, bangou):
-        if bangou in self.dbdata: # TODO: test
-            print("find info in db")
+        if bangou in self.dbdata:
+            print(f"find [{bangou}] info in db")
             return self.dbdata[bangou]
 
         response = requests.get('http://www.javlibrary.com/tw/vl_searchbyid.php?keyword=' + bangou) # TODO: different lang
@@ -41,7 +47,9 @@ class JAVInfoGetter:
         info["date"] = self.ParseDate()
 
         self.AddData(info)
-        time.sleep(setting.getInfoInterval)
+        time.sleep(setting.getInfoInterval) # XXX: use countdown timer instead sleep
+        pp = CreatePrettyPrinter()
+        pp.pprint(info)
 
         return info
 
@@ -96,9 +104,11 @@ class JAVInfoGetter:
     def AddData(self, info):
         self.dbdata.update({info["bangou"]: info})
 
-    def __del__(self):
-        json.dump(self.dbdata, self.dbfile)
-        self.dbfile.close()
+    def SaveData(self):
+        print("save db")
+        with open("db.json", "w") as self.dbfile:
+            json.dump(self.dbdata, self.dbfile)
+            self.dbfile.close()
 
 class FileNameParser:
     def __init__(self, fileExts):
@@ -108,9 +118,7 @@ class FileNameParser:
         videoFileList = []
         path = Path(fileDir)
         for fileExt in self.fileExts:
-            videoFileList.extend(path.rglob(fileExt))
-
-        print(videoFileList)
+            videoFileList.extend(path.rglob(fileExt)) # TODO: test recursive folder
 
         fileNames = dict()
         bangous = []
@@ -122,19 +130,18 @@ class FileNameParser:
             bangous.append(bangou)
             fileNames[bangou] = fileName
 
-        pp = pprint.PrettyPrinter(depth=6)
+        pp = CreatePrettyPrinter()
+        print("find video files")
         pp.pprint(fileNames)
-        pp.pprint(bangous)
+        #pp.pprint(bangous)
+
         return fileNames, bangous
 
     def ParseBangou(self, fileName):
         try:
-            bangou = re.search("\w+\-\d+", fileName).group(0)
+            bangou = re.search("\w+\-*\d+", fileName).group(0) # TODO: test no dash, like mum130
         except:
-            try:
-                bangou = re.search("\w+\d+", fileName).group(0) # XXX:
-            except:
-                return ""
+            return ""
         return bangou
 
 class Setting:
@@ -160,12 +167,17 @@ class Setting:
                     infovalue = infovalue + "["+element+"]"
             newFileNameFormat = newFileNameFormat.replace(infokey, infovalue)
 
-        oldName = path.name
-        path.rename(path.parents / (newFileNameFormat + path.suffix) # FIXME:
-        print(f"Rename [{oldName}] to [{newFileNameFormat}]")
+        oldName = str(path)
+        newName = newFileNameFormat + path.suffix
+        if path.name == newName:
+            print(f"File [{oldName}] no need to rename")
+            return
+        path = path.rename(path.parents[0] / newName)
+        newName = str(path)
+        print(f"Rename [{oldName}] to [{newName}]")
 
 if __name__ == "__main__":
-    # TODO: do real test
+    # TODO: do real file test
     setting = Setting()
     fileNameParser = FileNameParser(setting.fileExts)
     fileNames, bangous = fileNameParser.Parse(setting.fileDir)
@@ -176,8 +188,6 @@ if __name__ == "__main__":
     # TODO: save album
     for bangou in bangous:
         info = infoGetter.Get(bangou)
-        pp = pprint.PrettyPrinter(depth=6)
-        pp.pprint(info)
-
         setting.Rename(info, fileNames[bangou])
 
+    infoGetter.SaveData()
