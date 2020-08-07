@@ -2,6 +2,7 @@ import requests
 import time
 import glob, os
 import re
+from pathlib import Path
 from bs4 import BeautifulSoup
 
 def getText(element):
@@ -9,6 +10,7 @@ def getText(element):
 
 class JAVInfoGetter:
     def __init__(self):
+        # TODO: save this entry into info.json in the same directory
         pass
 
     def Get(self, bangou):
@@ -23,6 +25,11 @@ class JAVInfoGetter:
         info["director"] = self.ParseDirector()
         info["maker"] = self.ParseMaker()
         info["actors"] = self.ParseActor()
+        info["album"] = self.ParseAlbum()
+        info["length"] = self.ParseLength()
+        info["date"] = self.ParseDate()
+
+        # TODO: save info into json
 
         return info
 
@@ -56,6 +63,23 @@ class JAVInfoGetter:
         except:
             return ""
 
+    def ParseAlbum(self):
+        try:
+            return self.soup.select_one("#video_jacket").select_one("img").get("src")
+        except:
+            return ""
+
+    def ParseLength(self):
+        try:
+            return self.soup.select_one("#video_length").select_one(".text").getText()
+        except:
+            return ""
+
+    def ParseDate(self):
+        try:
+            return self.soup.select_one("#video_date").select_one(".text").getText()
+        except:
+            return ""
 
 class FileNameParser:
     def __init__(self, fileExts):
@@ -63,36 +87,57 @@ class FileNameParser:
 
     def Parse(self, fileDir):
         os.chdir(fileDir)
-        fileList = []
+
+        videoFileList = []
         for fileExt in self.fileExts:
-            fileList.extend(glob.glob(fileExt, recursive = True)) # TODO: test recursive
+            videoFileList.extend(glob.glob(fileExt))
 
-        fileNames = []
+        fileNames = dict()
         bangous = []
-        for fileName in fileList:
-            fileNames.append(os.path.join(fileDir, fileName))
-            bangou = re.search("\w+\-\d+", fileName)
-            bangous.append(bangou.group(0))
+        for fileName in videoFileList:
+            bangou = self.ParseBangou(fileName)
+            if not bangou:
+                continue
+            
+            bangous.append(bangou)
+            fileNames[bangou] = fileName
 
-        print("fileNames" + str(fileNames))
-        print("bangous" + str(bangous))
+        print("fileNames : " + str(fileNames))
+        print("bangous : " + str(bangous))
         return fileNames, bangous
 
+    def ParseBangou(self, fileName):
+        try:
+            bangou = re.search("\w+\-\d+", fileName).group(0)
+        except:
+            try:
+                bangou = re.search("\w+\d+", fileName).group(0)
+            except:
+                return ""
+        return bangou
+
 if __name__ == "__main__":
-    fileExts = ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm"] # TODO: extensions
-    filePath = "."
+    # TODO: do real test
+    # TODO: move to config
+    fileExts = ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm", "*.m4v", "*.asf", "*.wmv", "*.webm"]
+    fileDir = "original/"
     getInterval = 5
 
     fileNameParser = FileNameParser(fileExts)
-    fileNames, bangous = fileNameParser.Parse(filePath)
+    fileNames, bangous = fileNameParser.Parse(fileDir)
 
     infoGetter = JAVInfoGetter()
+
+    # TODO: option: new folder for all xxx
+    # TODO: option: new folder for the same actor
+    # TODO: option: new folder for the same tag # create link
     for bangou in bangous:
         info = infoGetter.Get(bangou)
         print(info)
-        # save info.json in the same directory
+        # TODO: specify rename file name
+        oldName = fileNames[bangou]
+        newName = info["title"] + Path(fileNames[bangou]).suffix
+        os.rename(oldName, newName)
+        print(f"Rename [{oldName}] to [{newName}]")
 
-        # rename file
-        
-        exit(0)
         time.sleep(getInterval)
