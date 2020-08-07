@@ -1,5 +1,7 @@
 import requests
 import time
+import glob, os
+import re
 from bs4 import BeautifulSoup
 
 def getText(element):
@@ -15,6 +17,7 @@ class JAVInfoGetter:
         info = dict()
 
         #print(soup.prettify())
+        info["bangou"] = bangou
         info["title"] = self.ParseTitle()
         info["tags"] = self.ParseTag()
         info["director"] = self.ParseDirector()
@@ -55,24 +58,41 @@ class JAVInfoGetter:
 
 
 class FileNameParser:
-    def __init__(self):
-        pass
+    def __init__(self, fileExts):
+        self.fileExts = fileExts
 
-    def Parse(self, filePath):
-        fileNames = ["EBOD-704", "MUM-130", "STARS-234"]
-        # TODO:
-        return fileNames
+    def Parse(self, fileDir):
+        os.chdir(fileDir)
+        fileList = []
+        for fileExt in self.fileExts:
+            fileList.extend(glob.glob(fileExt, recursive = True)) # TODO: test recursive
+
+        fileNames = []
+        bangous = []
+        for fileName in fileList:
+            fileNames.append(os.path.join(fileDir, fileName))
+            bangou = re.search("\w+\-\d+", fileName)
+            bangous.append(bangou.group(0))
+
+        print("fileNames" + str(fileNames))
+        print("bangous" + str(bangous))
+        return fileNames, bangous
 
 if __name__ == "__main__":
-    
+    fileExts = ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm"] # TODO: extensions
+    filePath = "."
     getInterval = 5
 
-    fileNameParser = FileNameParser()
-    bangous = fileNameParser.Parse(filePath)
+    fileNameParser = FileNameParser(fileExts)
+    fileNames, bangous = fileNameParser.Parse(filePath)
 
     infoGetter = JAVInfoGetter()
     for bangou in bangous:
         info = infoGetter.Get(bangou)
         print(info)
+        # save info.json in the same directory
+
+        # rename file
+        
         exit(0)
         time.sleep(getInterval)
