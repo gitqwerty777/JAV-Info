@@ -15,12 +15,13 @@ def CreatePrettyPrinter():
 
 class JAVInfoGetter:
     def __init__(self):
-        dbpath = Path("db.json") # TODO: use it
-        if not os.path.exists("db.json"): # XXX: move db out of infogetter
-            os.mknod("db.json")
+        self.dbpath = Path("db.json")
+
+        if not self.dbpath.exists(): # XXX: move db out of infogetter
+            self.dbpath.touch()
             self.dbdata = {}
         else:
-            with open("db.json") as self.dbfile:
+            with open(self.dbpath) as self.dbfile:
                 self.dbdata = json.load(self.dbfile)
 
         print("read db")
@@ -46,10 +47,9 @@ class JAVInfoGetter:
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
 
+        print(json.dumps(info, indent=4, ensure_ascii=False))
         self.AddData(info)
-        time.sleep(setting.getInfoInterval) # XXX: use countdown timer instead sleep
-        pp = CreatePrettyPrinter()
-        pp.pprint(info)
+        time.sleep(setting.getInfoInterval)
 
         return info
 
@@ -106,7 +106,7 @@ class JAVInfoGetter:
 
     def SaveData(self):
         print("save db")
-        with open("db.json", "w") as self.dbfile:
+        with open(self.dbpath, "w") as self.dbfile:
             json.dump(self.dbdata, self.dbfile)
             self.dbfile.close()
 
@@ -118,13 +118,13 @@ class FileNameParser:
         videoFileList = []
         path = Path(fileDir)
         for fileExt in self.fileExts:
-            videoFileList.extend(path.rglob(fileExt)) # TODO: test recursive folder
+            videoFileList.extend(path.rglob(fileExt))
 
         fileNames = dict()
         bangous = []
         for fileName in videoFileList:
             bangou = self.ParseBangou(fileName.name)
-            if len(bangou) == 0: # XXX:
+            if not bangou:
                 continue
             
             bangous.append(bangou)
@@ -133,13 +133,12 @@ class FileNameParser:
         pp = CreatePrettyPrinter()
         print("find video files")
         pp.pprint(fileNames)
-        #pp.pprint(bangous)
 
         return fileNames, bangous
 
     def ParseBangou(self, fileName):
         try:
-            bangou = re.search("\w+\-*\d+", fileName).group(0) # TODO: test no dash, like mum130
+            bangou = re.search("\w+\-*\d+", fileName).group(0)
         except:
             return ""
         return bangou
@@ -150,11 +149,14 @@ class Setting:
             settingText = configFile.read()
             settingJson = json.loads(settingText)
 
-            # TODO: default value
-            self.fileExts = settingJson["fileExts"]
-            self.fileDir = settingJson["fileDir"]
-            self.getInfoInterval = int(settingJson["getInfoInterval"])
-            self.fileNameFormat = settingJson["fileNameFormat"]
+            try:
+                self.fileExts = settingJson["fileExts"]
+                self.fileDir = settingJson["fileDir"]
+                self.getInfoInterval = int(settingJson["getInfoInterval"])
+                self.fileNameFormat = settingJson["fileNameFormat"]
+            except:
+                print("read config file failed")
+                exit(1)
 
     def Rename(self, info, path):
         newFileNameFormat = self.fileNameFormat
