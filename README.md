@@ -1,0 +1,3 @@
+## usage
+
+python getInfo.py

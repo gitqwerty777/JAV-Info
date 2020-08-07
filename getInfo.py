@@ -2,6 +2,8 @@ import requests
 import time
 import glob, os
 import re
+import json
+import pprint
 from pathlib import Path
 from bs4 import BeautifulSoup
 
@@ -10,11 +12,20 @@ def getText(element):
 
 class JAVInfoGetter:
     def __init__(self):
-        # TODO: save this entry into info.json in the same directory
-        pass
+        self.dbfile = open("db.json", "w+")
+
+        dbtext = self.dbfile.read()
+        if dbtext:
+            self.dbdata = json.load()    
+        else:
+            self.dbdata = dict()
 
     def Get(self, bangou):
-        response = requests.get('http://www.javlibrary.com/tw/vl_searchbyid.php?keyword=' + bangou)
+        if bangou in self.dbdata: # TODO: test
+            print("find info in db")
+            return self.dbdata[bangou]
+
+        response = requests.get('http://www.javlibrary.com/tw/vl_searchbyid.php?keyword=' + bangou) # TODO: different lang
         self.soup = BeautifulSoup(response.text, "html.parser")
         info = dict()
 
@@ -29,7 +40,8 @@ class JAVInfoGetter:
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
 
-        # TODO: save info into json
+        self.AddData(info)
+        time.sleep(setting.getInfoInterval)
 
         return info
 
@@ -81,29 +93,38 @@ class JAVInfoGetter:
         except:
             return ""
 
+    def AddData(self, info):
+        self.dbdata.update({info["bangou"]: info})
+
+    def __del__(self):
+        json.dump(self.dbdata, self.dbfile)
+        self.dbfile.close()
+
 class FileNameParser:
     def __init__(self, fileExts):
         self.fileExts = fileExts
 
     def Parse(self, fileDir):
-        os.chdir(fileDir)
-
         videoFileList = []
+        path = Path(fileDir)
         for fileExt in self.fileExts:
-            videoFileList.extend(glob.glob(fileExt))
+            videoFileList.extend(path.rglob(fileExt))
+
+        print(videoFileList)
 
         fileNames = dict()
         bangous = []
         for fileName in videoFileList:
-            bangou = self.ParseBangou(fileName)
-            if not bangou:
+            bangou = self.ParseBangou(fileName.name)
+            if len(bangou) == 0: # XXX:
                 continue
             
             bangous.append(bangou)
             fileNames[bangou] = fileName
 
-        print("fileNames : " + str(fileNames))
-        print("bangous : " + str(bangous))
+        pp = pprint.PrettyPrinter(depth=6)
+        pp.pprint(fileNames)
+        pp.pprint(bangous)
         return fileNames, bangous
 
     def ParseBangou(self, fileName):
@@ -111,33 +132,52 @@ class FileNameParser:
             bangou = re.search("\w+\-\d+", fileName).group(0)
         except:
             try:
-                bangou = re.search("\w+\d+", fileName).group(0)
+                bangou = re.search("\w+\d+", fileName).group(0) # XXX:
             except:
                 return ""
         return bangou
 
+class Setting:
+    def __init__(self):
+        with open("config.json") as configFile:
+            settingText = configFile.read()
+            settingJson = json.loads(settingText)
+
+            # TODO: default value
+            self.fileExts = settingJson["fileExts"]
+            self.fileDir = settingJson["fileDir"]
+            self.getInfoInterval = int(settingJson["getInfoInterval"])
+            self.fileNameFormat = settingJson["fileNameFormat"]
+
+    def Rename(self, info, path):
+        newFileNameFormat = self.fileNameFormat
+        for key in info:
+            infokey = "{" + key + "}"
+            infovalue = info[key]
+            if type(infovalue) is list:
+                infovalue = ""
+                for element in info[key]:
+                    infovalue = infovalue + "["+element+"]"
+            newFileNameFormat = newFileNameFormat.replace(infokey, infovalue)
+
+        oldName = path.name
+        path.rename(path.parents / (newFileNameFormat + path.suffix) # FIXME:
+        print(f"Rename [{oldName}] to [{newFileNameFormat}]")
+
 if __name__ == "__main__":
     # TODO: do real test
-    # TODO: move to config
-    fileExts = ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm", "*.m4v", "*.asf", "*.wmv", "*.webm"]
-    fileDir = "original/"
-    getInterval = 5
-
-    fileNameParser = FileNameParser(fileExts)
-    fileNames, bangous = fileNameParser.Parse(fileDir)
+    setting = Setting()
+    fileNameParser = FileNameParser(setting.fileExts)
+    fileNames, bangous = fileNameParser.Parse(setting.fileDir)
 
     infoGetter = JAVInfoGetter()
 
-    # TODO: option: new folder for all xxx
-    # TODO: option: new folder for the same actor
-    # TODO: option: new folder for the same tag # create link
+    # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
+    # TODO: save album
     for bangou in bangous:
         info = infoGetter.Get(bangou)
-        print(info)
-        # TODO: specify rename file name
-        oldName = fileNames[bangou]
-        newName = info["title"] + Path(fileNames[bangou]).suffix
-        os.rename(oldName, newName)
-        print(f"Rename [{oldName}] to [{newName}]")
+        pp = pprint.PrettyPrinter(depth=6)
+        pp.pprint(info)
 
-        time.sleep(getInterval)
+        setting.Rename(info, fileNames[bangou])
+
