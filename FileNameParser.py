@@ -2,8 +2,10 @@ import re
 import pprint
 from pathlib import Path
 
+
 def CreatePrettyPrinter():
     return pprint.PrettyPrinter(indent=0, width=60)
+
 
 class FileNameParser:
     def __init__(self, fileExts, minFileSizeMB):
@@ -26,6 +28,7 @@ class FileNameParser:
 
             bangou = self.ParseBangou(fileName.name)
             if not bangou:
+                print(f"bangou not found in file {fileName.name}")
                 continue
 
             bangou = bangou.upper()
@@ -43,7 +46,15 @@ class FileNameParser:
 
     def ParseBangou(self, fileName):
         try:
-            bangou = re.search("\w+\-*\d+", fileName).group(0) # TODO: fit different bangou format
+            # TODO: fit different bangou format
+            result = re.search("[a-zA-Z]+\-+\d+", fileName)
+            if not result:
+                # non-strict version
+                result = re.search("([a-zA-Z]+)\s*(\-*)\s*(\d+)", fileName)
+            bangou = result.group(0)
+
+            if bangou == "mp4":  # special case
+                return ""
             return bangou
         except:
             return ""
