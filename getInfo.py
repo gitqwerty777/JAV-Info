@@ -35,17 +35,28 @@ class JAVInfoGetter:
         print("read db")
         #print(self.dbdata)
 
-    def Get(self, bangou, fileName):
+    def GetWebContent(self, bangou):
+        link = "http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou # TODO: add another source to get info
+        response = requests.get(link)
+        self.soup = BeautifulSoup(response.text, "html.parser")
+
+        if self.soup.select_one(".videothumblist"): # has multiple search result
+            link = "http://www.javlibrary.com/" + self.setting.language + "/" + self.soup.select_one(".videothumblist").select_one(".video").select_one("a")["href"]
+            print(link)
+            response = requests.get(link)
+            self.soup = BeautifulSoup(response.text, "html.parser")
+
+        return link
+
+    def GetInfo(self, bangou, fileName):
         if bangou in self.dbdata:
             print(f"find [{bangou}] info in db")
             return self.dbdata[bangou], True
 
-        link = "http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou # TODO: add another source to get info
-        response = requests.get(link)
-        self.soup = BeautifulSoup(response.text, "html.parser")
         info = dict()
+        link = self.GetWebContent(bangou)
 
-        #print(soup.prettify())
+        #print(self.soup.prettify())
         info["bangou"] = self.ParseBangou() # TODO: make sure different bangou has one copy. e.g, mum-130, mum130
         info["title"] = self.ParseTitle(info["bangou"])
         info["tags"] = self.ParseTag()
@@ -166,7 +177,8 @@ class FileNameParser:
             bangou = self.ParseBangou(fileName.name)
             if not bangou:
                 continue
-            
+
+            bangou = bangou.upper()
             if bangou in fileNames:
                 fileNames[bangou].append(fileName)
                 fileNames[bangou].sort()
@@ -305,7 +317,7 @@ if __name__ == "__main__": # XXX: move to main.py
 
     fileNames = fileNameParser.Parse(setting.fileDir)
     for bangou in fileNames:
-        info, success = infoGetter.Get(bangou, str(fileNames[bangou]))
+        info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
         if not success:
             continue
 
