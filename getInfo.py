@@ -1,12 +1,11 @@
 import requests
-import time
-import glob, os
+import time, os
 import re
 import json
 import pprint
+import colorama
 from pathlib import Path
 from bs4 import BeautifulSoup
-import colorama # TODO: from import or import
 
 def getText(element):
     return element.getText()
@@ -14,17 +13,24 @@ def getText(element):
 def CreatePrettyPrinter():
     return pprint.PrettyPrinter(indent=0, width=60)
 
+def lenInBytes(string):
+    return len(string.encode("utf-8"))
+
 class JAVInfoGetter:
     def __init__(self, setting):
         self.setting = setting
-        self.dbpath = Path("db.json") # TODO: db should seperate by language
+        self.dbpath = Path("db-" + self.setting.language + ".json")
 
         if not self.dbpath.exists(): # XXX: move db out of infogetter
             self.dbpath.touch()
             self.dbdata = {}
         else:
             with open(self.dbpath) as self.dbfile:
-                self.dbdata = json.load(self.dbfile)
+                dbtext = self.dbfile.read()
+                if not dbtext:
+                    self.dbdata = {}
+                else:
+                    self.dbdata = json.loads(dbtext)
 
         print("read db")
         #print(self.dbdata)
@@ -39,8 +45,8 @@ class JAVInfoGetter:
         info = dict()
 
         #print(soup.prettify())
-        info["bangou"] = bangou
-        info["title"] = self.ParseTitle() # TODO: remove bangou info in title # title may include actor name
+        info["bangou"] = bangou # TODO: normalize bangou, and change filenames' key
+        info["title"] = self.ParseTitle(bangou)
         info["tags"] = self.ParseTag()
         info["director"] = self.ParseDirector()
         info["maker"] = self.ParseMaker()
@@ -52,18 +58,20 @@ class JAVInfoGetter:
         info["rate"] = self.ParseRate()
 
         if not info["title"]:
-            print(f"Parse {bangou} failed")
+            print(f"{colorama.Back.RED}Parse {bangou} failed{colorama.Back.RESET}")
             return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
         self.AddData(info)
-        time.sleep(setting.getInfoInterval)
+        time.sleep(setting.getInfoInterval) # XXX: use timer instead sleep
 
         return info, True
 
-    def ParseTitle(self):
+    def ParseTitle(self, bangou):
         try:
-            return self.soup.select_one("#video_title").select_one("a").getText()
+            title = self.soup.select_one("#video_title").select_one("a").getText()
+            title = title.replace(bangou, "")
+            return title.strip(" ")
         except:
             return ""
 
@@ -111,13 +119,18 @@ class JAVInfoGetter:
 
     def ParseThumbs(self):
         try:
-            return self.soup.select(".previewthumbs") #TODO:
+            imgs = self.soup.select_one(".previewthumbs").select("img")
+            imgs = imgs[1:] # remove "../img/player.gif"
+            imgs = [img["src"] for img in imgs]
+            return imgs
         except:
             return ""
 
     def ParseRate(self):
         try:
-            return self.soup.select_one("#video_review") #TODO:
+            text = self.soup.select_one("#video_review").select_one(".score").getText()
+            rate = re.search("(\d+.*\d)", text).group(0)
+            return str(float(rate))
         except:
             return ""
 
@@ -176,6 +189,7 @@ class Setting:
             self.language = settingJson["language"]
             self.saveAlbum = settingJson["saveAlbum"]
             self.dryRun = settingJson["dryRun"]
+            self.maxFileLength = settingJson["maxFileLength"]
         except:
             print("read config file failed")
             exit(1)
@@ -185,10 +199,11 @@ class Executor:
         self.setting = setting
 
     def HandleFile(self, info, path):
-        print(f"============== handle bangou {info['bangou']} ==================")
+        print(f"============== handle bangou {colorama.Back.YELLOW}{info['bangou']}{colorama.Back.RESET} ==================")
         self.Rename(info, path)
         if self.setting.saveAlbum:
            self.SaveAlbum(info, path)
+        # TODO: fill video description in video file
 
     def Rename(self, info, path):
         newFileName = self.setting.fileNameFormat
@@ -201,7 +216,15 @@ class Executor:
                     infovalue = infovalue + "[" + element + "]"
             newFileName = newFileName.replace(infokey, infovalue)
 
+        if lenInBytes(newFileName) + lenInBytes(path.suffix) > self.setting.maxFileLength:
+            print(f"File name too long: {newFileName}")
+            maxFileLength = self.setting.maxFileLength - lenInBytes(path.suffix)
+            while lenInBytes(newFileName) > maxFileLength:
+                newFileName = newFileName[0:-1]
+            print(f"After truncate file name: {newFileName}")
+
         newName = newFileName + path.suffix
+
         if path.name == newName:
             print(f"File [{str(path)}] no need to rename")
             return
@@ -210,28 +233,39 @@ class Executor:
         
     def DoRename(self, path, newName):
         newPath = path.parents[0] / newName
-        print(f"Rename {colorama.Back.BLUE}[{str(path)}]{colorama.Back.RESET}\n"+
-              f"To     {colorama.Back.GREEN}[{str(newPath)}]{colorama.Back.RESET}")
+        if newPath.exists(): # TODO: test multiple files with the same bangou
+            number = 1
+            newPath = path.parents[0] / (newName + str(number))
+            while newPath.exists():
+                number += 1
+                newPath = path.parents[0] / (newName + str(number))
+
+        print(f"Rename {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET}\n"+
+              f"To     {colorama.Back.GREEN}{str(newPath)}{colorama.Back.RESET}")
+
+        # TODO: option to ask before rename
 
         if self.setting.dryRun:
             return
 
         try:
             path.rename(newPath)
-        except: #TODO: print error reason
+        except Exception as e:
             print(f"{colorama.Back.RED}Rename [{str(path)}] to [{str(newPath)}] failed{colorama.Back.RESET}")
+            print(e)
+            # TODO: file name too long
 
     def SaveAlbum(self, info, path):
         albumFileName = info["bangou"] + ".jpg"
         albumPath = Path(path.parents[0] / albumFileName)
 
         if albumPath.exists():
-            print(f"Album {colorama.Back.GREEN}[{str(albumPath)}]{colorama.Back.RESET} already exists, do nothing")
+            print(f"Album {colorama.Back.BLUE}{str(albumPath)}{colorama.Back.RESET} already exists, do nothing")
             return
         self.DoSaveAlbum(info, albumPath)
 
     def DoSaveAlbum(self, info, albumPath):
-        print(f"Save album as [{str(albumPath)}]")
+        print(f"Save album image {colorama.Back.GREEN}{str(albumPath)}{colorama.Back.RESET}")
         
         if self.setting.dryRun:
             return
@@ -241,16 +275,18 @@ class Executor:
             fileObject = requests.get(fileURL)
             albumFile.write(fileObject.content)
 
-if __name__ == "__main__": # TODO: move to main.py
+if __name__ == "__main__": # XXX: move to main.py
     colorama.init()
     setting = Setting()
     fileNameParser = FileNameParser(setting.fileExts)
     infoGetter = JAVInfoGetter(setting)
     executor = Executor(setting)
 
+    if setting.dryRun:
+        print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
+
     fileNames, bangous = fileNameParser.Parse(setting.fileDir)
     # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
-    # TODO: deal with multiple part files of the same bangou, should ask user to overwrite or rename
     for bangou in bangous:
         info, success = infoGetter.Get(bangou)
         if not success:
