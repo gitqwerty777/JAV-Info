@@ -40,13 +40,14 @@ class JAVInfoGetter:
             print(f"find [{bangou}] info in db")
             return self.dbdata[bangou], True
 
-        response = requests.get("http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou)
+        link = "http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou # TODO: add another source to get info
+        response = requests.get(link)
         self.soup = BeautifulSoup(response.text, "html.parser")
         info = dict()
 
         #print(soup.prettify())
-        info["bangou"] = bangou # TODO: normalize bangou, and change filenames' key
-        info["title"] = self.ParseTitle(bangou)
+        info["bangou"] = self.ParseBangou() # TODO: make sure different bangou has one copy. e.g, mum-130, mum130
+        info["title"] = self.ParseTitle(info["bangou"])
         info["tags"] = self.ParseTag()
         info["director"] = self.ParseDirector()
         info["maker"] = self.ParseMaker()
@@ -54,8 +55,9 @@ class JAVInfoGetter:
         info["album"] = self.ParseAlbum()
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
-        info["thumbs"] = self.ParseThumbs() # TODO: save thumbs
+        info["thumbs"] = self.ParseThumbs()
         info["rate"] = self.ParseRate()
+        info["link"] = link
 
         if not info["title"]:
             print(f"{colorama.Back.RED}Parse {bangou} failed. File name {fileName}{colorama.Back.RESET}")
@@ -66,6 +68,12 @@ class JAVInfoGetter:
         time.sleep(setting.getInfoInterval) # XXX: use timer instead sleep
 
         return info, True
+
+    def ParseBangou(self):
+        try:
+            return self.soup.select_one("#video_id").select_one(".text").getText()
+        except:
+            return ""
 
     def ParseTitle(self, bangou):
         try:
@@ -154,24 +162,26 @@ class FileNameParser:
             videoFileList.extend(path.rglob(fileExt))
 
         fileNames = dict()
-        bangous = []
         for fileName in videoFileList:
             bangou = self.ParseBangou(fileName.name)
             if not bangou:
                 continue
             
-            bangous.append(bangou)
-            fileNames[bangou] = fileName
+            if bangou in fileNames:
+                fileNames[bangou].append(fileName)
+                fileNames[bangou].sort()
+            else:
+                fileNames[bangou] = [fileName]
 
         pp = CreatePrettyPrinter()
         print("find video files")
         pp.pprint(fileNames)
 
-        return fileNames, bangous
+        return fileNames
 
     def ParseBangou(self, fileName):
         try:
-            bangou = re.search("\w+\-*\d+", fileName).group(0)
+            bangou = re.search("\w+\-*\d+", fileName).group(0) # TODO: fit different bangou format
             return bangou
         except:
             return ""
@@ -198,14 +208,19 @@ class Executor:
     def __init__(self, setting):
         self.setting = setting
 
-    def HandleFile(self, info, path):
+    def HandleBangou(self, info, path): # only save one copy of album and thumb
         print(f"============== handle bangou {colorama.Back.YELLOW}{info['bangou']}{colorama.Back.RESET} ==================")
-        self.Rename(info, path)
         if self.setting.saveAlbum:
            self.SaveAlbum(info, path)
-        # TODO: fill video description in video file
+        # TODO: save thumbs
 
-    def Rename(self, info, path):
+    def HandleFile(self, info, path, index = -1):
+        print(f"============== handle file {colorama.Back.YELLOW}{str(path)}{colorama.Back.RESET} ==================")
+        self.Rename(info, path, index)
+        # TODO: fill video meta description in video file
+        # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
+
+    def Rename(self, info, path, index): # TODO: refact
         newFileName = self.setting.fileNameFormat
         for key in info:
             infokey = "{" + key + "}"
@@ -216,29 +231,33 @@ class Executor:
                     infovalue = infovalue + "[" + element + "]"
             newFileName = newFileName.replace(infokey, infovalue)
 
-        if lenInBytes(newFileName) + lenInBytes(path.suffix) > self.setting.maxFileLength:
-            print(f"File name too long: {newFileName}")
-            maxFileLength = self.setting.maxFileLength - lenInBytes(path.suffix)
-            while lenInBytes(newFileName) > maxFileLength:
-                newFileName = newFileName[0:-1]
-            print(f"After truncate file name: {newFileName}")
-
-        newName = newFileName + path.suffix
+        # handle file name too long error
+        if index == -1:
+            if lenInBytes(newFileName) + lenInBytes(path.suffix) > self.setting.maxFileLength:
+                print(f"File name too long: {newFileName}")
+                maxFileLength = self.setting.maxFileLength - lenInBytes(path.suffix)
+                while lenInBytes(newFileName) > maxFileLength:
+                    newFileName = newFileName[0:-1]
+                print(f"After truncate file name: {newFileName}")
+            newName = newFileName + path.suffix
+        else: # handle multiple files with the same bangou
+            numberStr = "_" + str(index+1)
+            if lenInBytes(newFileName) + lenInBytes(path.suffix) + lenInBytes(numberStr) > self.setting.maxFileLength:
+                print(f"File name too long: {newFileName}")
+                maxFileLength = self.setting.maxFileLength - lenInBytes(path.suffix) - lenInBytes(numberStr)
+                while lenInBytes(newFileName) > maxFileLength:
+                    newFileName = newFileName[0:-1]
+                print(f"After truncate file name: {newFileName}")
+            newName = newFileName + numberStr + path.suffix
 
         if path.name == newName:
-            print(f"File {colorama.Back.BLUE}[{str(path)}]{colorama.Back.RESET} no need to rename")
+            print(f"File {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET} no need to rename")
             return
 
         self.DoRename(path, newName)
         
     def DoRename(self, path, newName):
         newPath = path.parents[0] / newName
-        if newPath.exists(): # TODO: test multiple files with the same bangou
-            number = 1
-            newPath = path.parents[0] / (newName + str(number))
-            while newPath.exists():
-                number += 1
-                newPath = path.parents[0] / (newName + str(number))
 
         print(f"Rename {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET}\n"+
               f"To     {colorama.Back.GREEN}{str(newPath)}{colorama.Back.RESET}")
@@ -253,7 +272,6 @@ class Executor:
         except Exception as e:
             print(f"{colorama.Back.RED}Rename [{str(path)}] to [{str(newPath)}] failed{colorama.Back.RESET}")
             print(e)
-            # TODO: file name too long
 
     def SaveAlbum(self, info, path):
         albumFileName = info["bangou"] + ".jpg"
@@ -285,12 +303,19 @@ if __name__ == "__main__": # XXX: move to main.py
     if setting.dryRun:
         print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
 
-    fileNames, bangous = fileNameParser.Parse(setting.fileDir)
-    # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
-    for bangou in bangous:
+    fileNames = fileNameParser.Parse(setting.fileDir)
+    for bangou in fileNames:
         info, success = infoGetter.Get(bangou, str(fileNames[bangou]))
         if not success:
             continue
-        executor.HandleFile(info, fileNames[bangou])
+
+        # TODO: executor.handlefiles
+        executor.HandleBangou(info, fileNames[bangou][0])
+
+        if len(fileNames[bangou]) > 1:
+            for index, fileName in enumerate(fileNames[bangou]):
+                executor.HandleFile(info, fileName, index)
+        else:
+            executor.HandleFile(info, fileNames[bangou][0])
 
     infoGetter.SaveData()

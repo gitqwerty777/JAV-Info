@@ -5,6 +5,6 @@
     "fileNameFormat": "{tags}{actors}{bangou}{title}",
     "language": "tw",
     "saveAlbum": true,
-    "dryRun": false,
+    "dryRun": true,
     "maxFileLength": 255
 }
