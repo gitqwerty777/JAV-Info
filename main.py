@@ -8,7 +8,7 @@ from Executor import Executor
 if __name__ == "__main__":
     colorama.init()
     setting = Setting()
-    fileNameParser = FileNameParser(setting.fileExts)
+    fileNameParser = FileNameParser(setting.fileExts, setting.minFileSizeMB)
     dataManager = DataManager(setting)
     infoGetter = JAVInfoGetter(setting, dataManager)
     executor = Executor(setting)

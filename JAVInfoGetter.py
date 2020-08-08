@@ -1,6 +1,7 @@
 import time
 import json
 import requests
+import colorama
 from bs4 import BeautifulSoup
 
 def getText(element):

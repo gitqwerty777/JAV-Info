@@ -6,8 +6,9 @@ def CreatePrettyPrinter():
     return pprint.PrettyPrinter(indent=0, width=60)
 
 class FileNameParser:
-    def __init__(self, fileExts):
+    def __init__(self, fileExts, minFileSizeMB):
         self.fileExts = fileExts
+        self.minFileSizeMB = minFileSizeMB
 
     def GetFiles(self, fileDir):
         videoFileList = []
@@ -17,6 +18,12 @@ class FileNameParser:
 
         fileNames = dict()
         for fileName in videoFileList:
+            stat = fileName.stat()
+            fileSizeMB = stat.st_size >> 20
+            if self.minFileSizeMB > fileSizeMB:
+                #print(f"ignore {str(fileName)} because file too small")
+                continue
+
             bangou = self.ParseBangou(fileName.name)
             if not bangou:
                 continue

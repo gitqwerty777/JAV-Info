@@ -6,5 +6,6 @@
     "language": "tw",
     "saveAlbum": true,
     "dryRun": false,
-    "maxFileLength": 255
+    "maxFileLength": 255,
+    "minFileSizeMB": 50
 }

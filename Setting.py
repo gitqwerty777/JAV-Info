@@ -14,6 +14,7 @@ class Setting:
             self.saveAlbum = settingJson["saveAlbum"]
             self.dryRun = settingJson["dryRun"]
             self.maxFileLength = settingJson["maxFileLength"]
+            self.minFileSizeMB = settingJson["minFileSizeMB"]
         except:
             print("read config file failed")
             exit(1)

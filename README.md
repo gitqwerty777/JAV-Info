@@ -29,6 +29,7 @@ Change config in `config.json`
 |saveAlbum | Save album image in the same directory of video file|
 |dryRun | Run without real execution |
 |maxFileLength | Maximum file name length in bytes, reduce this value if "file name too long" error happens |
+|minFileSizeMB | Minimum file size(in MB) to execute |
 
 ### Tags in fileNameFormat
 
