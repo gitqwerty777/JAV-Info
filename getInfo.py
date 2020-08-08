@@ -16,12 +16,12 @@ def CreatePrettyPrinter():
 def lenInBytes(string):
     return len(string.encode("utf-8"))
 
-class JAVInfoGetter:
+class DataManager:
     def __init__(self, setting):
         self.setting = setting
         self.dbpath = Path("db-" + self.setting.language + ".json")
 
-        if not self.dbpath.exists(): # XXX: move db out of infogetter
+        if not self.dbpath.exists():
             self.dbpath.touch()
             self.dbdata = {}
         else:
@@ -34,6 +34,27 @@ class JAVInfoGetter:
 
         print("read db")
         #print(self.dbdata)
+
+    def Add(self, info):
+        self.dbdata.update({info["bangou"]: info})
+
+    def Save(self):
+        print("save db")
+        with open(self.dbpath, "w") as self.dbfile:
+            json.dump(self.dbdata, self.dbfile)
+            self.dbfile.close()
+
+    def Search(self, bangou):
+        if bangou in self.dbdata:
+            print(f"find [{bangou}] info in db")
+            return self.dbdata[bangou]
+        else:
+            return None
+
+class JAVInfoGetter:
+    def __init__(self, setting, dataManager):
+        self.setting = setting
+        self.dataManager = dataManager
 
     def GetWebContent(self, bangou):
         link = "http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou # TODO: add another source to get info
@@ -49,9 +70,9 @@ class JAVInfoGetter:
         return link
 
     def GetInfo(self, bangou, fileName):
-        if bangou in self.dbdata:
-            print(f"find [{bangou}] info in db")
-            return self.dbdata[bangou], True
+        info = self.dataManager.Search(bangou)
+        if info:
+            return info, True
 
         info = dict()
         link = self.GetWebContent(bangou)
@@ -75,7 +96,7 @@ class JAVInfoGetter:
             return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
-        self.AddData(info)
+        self.dataManager.Add(info)
         time.sleep(setting.getInfoInterval) # XXX: use timer instead sleep
 
         return info, True
@@ -153,20 +174,11 @@ class JAVInfoGetter:
         except:
             return ""
 
-    def AddData(self, info):
-        self.dbdata.update({info["bangou"]: info})
-
-    def SaveData(self):
-        print("save db")
-        with open(self.dbpath, "w") as self.dbfile:
-            json.dump(self.dbdata, self.dbfile)
-            self.dbfile.close()
-
 class FileNameParser:
     def __init__(self, fileExts):
         self.fileExts = fileExts
 
-    def Parse(self, fileDir):
+    def GetFiles(self, fileDir):
         videoFileList = []
         path = Path(fileDir)
         for fileExt in self.fileExts:
@@ -219,6 +231,15 @@ class Setting:
 class Executor:
     def __init__(self, setting):
         self.setting = setting
+
+    def HandleFiles(self, info, bangou, fileNames):
+        self.HandleBangou(info, fileNames[bangou][0])
+
+        if len(fileNames[bangou]) > 1: # need to rename files with index
+            for index, fileName in enumerate(fileNames[bangou]):
+                executor.HandleFile(info, fileName, index)
+        else:
+            executor.HandleFile(info, fileNames[bangou][0])
 
     def HandleBangou(self, info, path): # only save one copy of album and thumb
         print(f"============== handle bangou {colorama.Back.YELLOW}{info['bangou']}{colorama.Back.RESET} ==================")
@@ -309,25 +330,18 @@ if __name__ == "__main__": # XXX: move to main.py
     colorama.init()
     setting = Setting()
     fileNameParser = FileNameParser(setting.fileExts)
-    infoGetter = JAVInfoGetter(setting)
+    dataManager = DataManager(setting)
+    infoGetter = JAVInfoGetter(setting, dataManager)
     executor = Executor(setting)
 
     if setting.dryRun:
         print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
 
-    fileNames = fileNameParser.Parse(setting.fileDir)
+    fileNames = fileNameParser.GetFiles(setting.fileDir)
     for bangou in fileNames:
         info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
         if not success:
             continue
+        executor.HandleFiles(info, bangou, fileNames)
 
-        # TODO: executor.handlefiles
-        executor.HandleBangou(info, fileNames[bangou][0])
-
-        if len(fileNames[bangou]) > 1:
-            for index, fileName in enumerate(fileNames[bangou]):
-                executor.HandleFile(info, fileName, index)
-        else:
-            executor.HandleFile(info, fileNames[bangou][0])
-
-    infoGetter.SaveData()
+    dataManager.Save()
