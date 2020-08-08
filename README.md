@@ -55,7 +55,7 @@ All queries will be saved in `db-{language}.json`.
 
 You can do dry run to check the rename progress and then execute without retrieving data again.
 
-Failed requests will also be saved, clean database if something looks wrong.
+Failed requests will also be saved, clean the database if something went wrong.
 
 ## Note
 

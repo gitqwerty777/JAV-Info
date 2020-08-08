@@ -15,6 +15,11 @@ if __name__ == "__main__":
 
     if setting.dryRun:
         print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
+    else:
+        print(f"{colorama.Back.RED}This is not dry run version.\nDry run is recommended before execution.\nDo you want to continue?(y/N){colorama.Back.RESET}")
+        response = input()
+        if response.lower() != "y":
+            exit(0)
 
     fileNames = fileNameParser.GetFiles(setting.fileDir)
     for bangou in fileNames:
