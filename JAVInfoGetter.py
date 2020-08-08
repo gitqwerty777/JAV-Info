@@ -17,10 +17,13 @@ class JAVInfoGetter:
         self.soup = BeautifulSoup(response.text, "html.parser")
 
         if self.soup.select_one(".videothumblist"): # has multiple search result
-            link = "http://www.javlibrary.com/" + self.setting.language + "/" + self.soup.select_one(".videothumblist").select_one(".video").select_one("a")["href"]
-            print(link)
-            response = requests.get(link)
-            self.soup = BeautifulSoup(response.text, "html.parser")
+            try:
+                link = "http://www.javlibrary.com/" + self.setting.language + "/" + self.soup.select_one(".videothumblist").select_one(".video").select_one("a")["href"]
+                print(link)
+                response = requests.get(link)
+                self.soup = BeautifulSoup(response.text, "html.parser")
+            except:
+                pass
 
         return link
 
