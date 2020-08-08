@@ -6,6 +6,7 @@ import json
 import pprint
 from pathlib import Path
 from bs4 import BeautifulSoup
+import colorama # TODO: from import or import
 
 def getText(element):
     return element.getText()
@@ -16,7 +17,7 @@ def CreatePrettyPrinter():
 class JAVInfoGetter:
     def __init__(self, setting):
         self.setting = setting
-        self.dbpath = Path("db.json")
+        self.dbpath = Path("db.json") # TODO: db should seperate by language
 
         if not self.dbpath.exists(): # XXX: move db out of infogetter
             self.dbpath.touch()
@@ -47,7 +48,8 @@ class JAVInfoGetter:
         info["album"] = self.ParseAlbum()
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
-        # TODO: class="previewthumbs"
+        info["thumbs"] = self.ParseThumbs()
+        info["rate"] = self.ParseRate()
 
         if not info["title"]:
             print(f"Parse {bangou} failed")
@@ -107,6 +109,18 @@ class JAVInfoGetter:
         except:
             return ""
 
+    def ParseThumbs(self):
+        try:
+            return self.soup.select(".previewthumbs") #TODO:
+        except:
+            return ""
+
+    def ParseRate(self):
+        try:
+            return self.soup.select_one("#video_review") #TODO:
+        except:
+            return ""
+
     def AddData(self, info):
         self.dbdata.update({info["bangou"]: info})
 
@@ -152,71 +166,95 @@ class FileNameParser:
 class Setting:
     def __init__(self):
         with open("config.json") as configFile:
-            settingText = configFile.read()
-            settingJson = json.loads(settingText)
+            settingJson = json.load(configFile)
 
-            try:
-                self.fileExts = settingJson["fileExts"]
-                self.fileDir = settingJson["fileDir"]
-                self.getInfoInterval = settingJson["getInfoInterval"]
-                self.fileNameFormat = settingJson["fileNameFormat"]
-                self.language = settingJson["language"]
-                self.saveAlbum = settingJson["saveAlbum"]
-            except:
-                print("read config file failed")
-                exit(1)
+        try:
+            self.fileExts = settingJson["fileExts"]
+            self.fileDir = settingJson["fileDir"]
+            self.getInfoInterval = settingJson["getInfoInterval"]
+            self.fileNameFormat = settingJson["fileNameFormat"]
+            self.language = settingJson["language"]
+            self.saveAlbum = settingJson["saveAlbum"]
+            self.dryRun = settingJson["dryRun"]
+        except:
+            print("read config file failed")
+            exit(1)
+
+class Executor:
+    def __init__(self, setting):
+        self.setting = setting
+
+    def HandleFile(self, info, path):
+        print(f"============== handle bangou {info['bangou']} ==================")
+        self.Rename(info, path)
+        if self.setting.saveAlbum:
+           self.SaveAlbum(info, path)
 
     def Rename(self, info, path):
-        newFileNameFormat = self.fileNameFormat
+        newFileName = self.setting.fileNameFormat
         for key in info:
             infokey = "{" + key + "}"
             infovalue = info[key]
             if type(infovalue) is list:
                 infovalue = ""
                 for element in info[key]:
-                    infovalue = infovalue + "["+element+"]"
-            newFileNameFormat = newFileNameFormat.replace(infokey, infovalue)
+                    infovalue = infovalue + "[" + element + "]"
+            newFileName = newFileName.replace(infokey, infovalue)
 
-        oldName = str(path)
-        newName = newFileNameFormat + path.suffix
+        newName = newFileName + path.suffix
         if path.name == newName:
-            print(f"File [{oldName}] no need to rename")
+            print(f"File [{str(path)}] no need to rename")
             return
-        path = path.rename(path.parents[0] / newName) # TODO: handle rename failed, like no file
-        newName = str(path)
-        print(f"Rename [{oldName}] to [{newName}]")
+
+        self.DoRename(path, newName)
+        
+    def DoRename(self, path, newName):
+        newPath = path.parents[0] / newName
+        print(f"Rename {colorama.Back.BLUE}[{str(path)}]{colorama.Back.RESET}\n"+
+              f"To     {colorama.Back.GREEN}[{str(newPath)}]{colorama.Back.RESET}")
+
+        if self.setting.dryRun:
+            return
+
+        try:
+            path.rename(newPath)
+        except: #TODO: print error reason
+            print(f"{colorama.Back.RED}Rename [{str(path)}] to [{str(newPath)}] failed{colorama.Back.RESET}")
 
     def SaveAlbum(self, info, path):
-        if not self.saveAlbum:
-            return
-
         albumFileName = info["bangou"] + ".jpg"
         albumPath = Path(path.parents[0] / albumFileName)
 
         if albumPath.exists():
-            print(f"Album [{str(albumPath)}] already exists, do nothing")
+            print(f"Album {colorama.Back.GREEN}[{str(albumPath)}]{colorama.Back.RESET} already exists, do nothing")
             return
+        self.DoSaveAlbum(info, albumPath)
+
+    def DoSaveAlbum(self, info, albumPath):
+        print(f"Save album as [{str(albumPath)}]")
+        
+        if self.setting.dryRun:
+            return
+
         with open(albumPath, 'wb') as albumFile:
-            print(f"Save album as [{str(albumPath)}]")
             fileURL = "http:" + info["album"]
             fileObject = requests.get(fileURL)
             albumFile.write(fileObject.content)
 
-if __name__ == "__main__":
-    # TODO: do real file test
+if __name__ == "__main__": # TODO: move to main.py
+    colorama.init()
     setting = Setting()
     fileNameParser = FileNameParser(setting.fileExts)
-    fileNames, bangous = fileNameParser.Parse(setting.fileDir)
-
     infoGetter = JAVInfoGetter(setting)
+    executor = Executor(setting)
 
+    fileNames, bangous = fileNameParser.Parse(setting.fileDir)
     # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
-    # TODO: deal with multiple part of the same bangou
+    # TODO: deal with multiple part files of the same bangou, should ask user to overwrite or rename
     for bangou in bangous:
         info, success = infoGetter.Get(bangou)
         if not success:
             continue
-        setting.Rename(info, fileNames[bangou])
-        setting.SaveAlbum(info, fileNames[bangou])
+        executor.HandleFile(info, fileNames[bangou])
 
     infoGetter.SaveData()
