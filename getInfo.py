@@ -35,7 +35,7 @@ class JAVInfoGetter:
         print("read db")
         #print(self.dbdata)
 
-    def Get(self, bangou):
+    def Get(self, bangou, fileName):
         if bangou in self.dbdata:
             print(f"find [{bangou}] info in db")
             return self.dbdata[bangou], True
@@ -54,11 +54,11 @@ class JAVInfoGetter:
         info["album"] = self.ParseAlbum()
         info["length"] = self.ParseLength()
         info["date"] = self.ParseDate()
-        info["thumbs"] = self.ParseThumbs()
+        info["thumbs"] = self.ParseThumbs() # TODO: save thumbs
         info["rate"] = self.ParseRate()
 
         if not info["title"]:
-            print(f"{colorama.Back.RED}Parse {bangou} failed{colorama.Back.RESET}")
+            print(f"{colorama.Back.RED}Parse {bangou} failed. File name {fileName}{colorama.Back.RESET}")
             return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
@@ -226,7 +226,7 @@ class Executor:
         newName = newFileName + path.suffix
 
         if path.name == newName:
-            print(f"File [{str(path)}] no need to rename")
+            print(f"File {colorama.Back.BLUE}[{str(path)}]{colorama.Back.RESET} no need to rename")
             return
 
         self.DoRename(path, newName)
@@ -260,7 +260,7 @@ class Executor:
         albumPath = Path(path.parents[0] / albumFileName)
 
         if albumPath.exists():
-            print(f"Album {colorama.Back.BLUE}{str(albumPath)}{colorama.Back.RESET} already exists, do nothing")
+            print(f"Album {colorama.Back.BLUE}{str(albumPath)}{colorama.Back.RESET} already exists")
             return
         self.DoSaveAlbum(info, albumPath)
 
@@ -288,7 +288,7 @@ if __name__ == "__main__": # XXX: move to main.py
     fileNames, bangous = fileNameParser.Parse(setting.fileDir)
     # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
     for bangou in bangous:
-        info, success = infoGetter.Get(bangou)
+        info, success = infoGetter.Get(bangou, str(fileNames[bangou]))
         if not success:
             continue
         executor.HandleFile(info, fileNames[bangou])
