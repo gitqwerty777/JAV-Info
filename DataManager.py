@@ -32,7 +32,6 @@ class DataManager:
 
     def Search(self, bangou):
         if bangou in self.dbdata:
-            print(f"find [{bangou}] info in db")
             return self.dbdata[bangou]
         else:
             return None

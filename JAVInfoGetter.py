@@ -36,7 +36,12 @@ class JAVInfoGetter:
     def GetInfo(self, bangou, fileName):
         info = self.dataManager.Search(bangou)
         if info:
-            return info, True
+            if info["title"]:
+                print(f"Find success info of {bangou} in db")
+                return info, True
+            else:
+                print(f"Find failed info of {bangou} in db")
+                return info, False
 
         info = dict()
         link = self.GetWebContent(bangou)
@@ -59,10 +64,13 @@ class JAVInfoGetter:
         if not info["title"]:
             print(
                 f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {fileName}{colorama.Back.RESET}")
+            info["bangou"] = bangou
+            self.dataManager.Add(info)
             return info, False
 
+        self.dataManager.Add(info)
         print(json.dumps(info, indent=4, ensure_ascii=False))
-        self.dataManager.Add(info)  # TODO: also save failed data
+
         if bangou != info["bangou"]:
             info2 = info.copy()
             info2["bangou"] = bangou

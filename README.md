@@ -55,6 +55,8 @@ All queries will be saved in `db-{language}.json`.
 
 You can do dry run to check the rename progress and then execute without retrieving data again.
 
+Failed requests will also be saved, clean database if something looks wrong.
+
 ## Note
 
 - input file name should include bangou, or rename will fail
@@ -71,6 +73,8 @@ You can do dry run to check the rename progress and then execute without retriev
   - update different bangou
 - Info
   - add info sources website
+- UI
+  - interface to search database
 
 ## Reference
 
