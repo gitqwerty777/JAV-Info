@@ -58,11 +58,15 @@ class JAVInfoGetter:
 
         if not info["title"]:
             print(
-                f"{colorama.Back.RED}Parse {bangou} failed. File name {fileName}{colorama.Back.RESET}")
+                f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {fileName}{colorama.Back.RESET}")
             return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
-        self.dataManager.Add(info)
+        self.dataManager.Add(info)  # TODO: also save failed data
+        if bangou != info["bangou"]:
+            info2 = info.copy()
+            info2["bangou"] = bangou
+            self.dataManager.Add(info2)
         # XXX: use timer instead sleep
         time.sleep(self.setting.getInfoInterval)
 

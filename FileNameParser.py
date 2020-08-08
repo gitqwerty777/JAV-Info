@@ -47,14 +47,19 @@ class FileNameParser:
     def ParseBangou(self, fileName):
         try:
             # TODO: fit different bangou format
-            result = re.search("[a-zA-Z]+\-+\d+", fileName)
-            if not result:
+            result = re.search("([a-zA-Z]+)\-+(\d+)", fileName)
+
+            bangou = ""
+            if result:
+                bangou = result.group(1) + "-" + result.group(2)
+            else:
                 # non-strict version
-                result = re.search("([a-zA-Z]+)\s*(\-*)\s*(\d+)", fileName)
-            bangou = result.group(0)
+                result = re.search("([a-zA-Z]+)\s*\-*\s*(\d+)", fileName)
+                if result:
+                    bangou = result.group(1) + "-" + result.group(2)
 
             if bangou == "mp4":  # special case
-                return ""
+                bangou = ""
             return bangou
         except:
             return ""
