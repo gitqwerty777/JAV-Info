@@ -4,8 +4,10 @@ import requests
 import colorama
 from bs4 import BeautifulSoup
 
+
 def getText(element):
     return element.getText()
+
 
 class JAVInfoGetter:
     def __init__(self, setting, dataManager):
@@ -13,13 +15,16 @@ class JAVInfoGetter:
         self.dataManager = dataManager
 
     def GetWebContent(self, bangou):
-        link = "http://www.javlibrary.com/" + self.setting.language + "/vl_searchbyid.php?keyword=" + bangou # TODO: add another source to get info
+        link = "http://www.javlibrary.com/" + self.setting.language + \
+            "/vl_searchbyid.php?keyword=" + bangou  # TODO: add another source to get info
         response = requests.get(link)
         self.soup = BeautifulSoup(response.text, "html.parser")
 
-        if self.soup.select_one(".videothumblist"): # has multiple search result
+        if self.soup.select_one(".videothumblist"):  # has multiple search result
             try:
-                link = "http://www.javlibrary.com/" + self.setting.language + "/" + self.soup.select_one(".videothumblist").select_one(".video").select_one("a")["href"]
+                link = "http://www.javlibrary.com/" + self.setting.language + "/" + \
+                    self.soup.select_one(".videothumblist").select_one(
+                        ".video").select_one("a")["href"]
                 print(link)
                 response = requests.get(link)
                 self.soup = BeautifulSoup(response.text, "html.parser")
@@ -36,8 +41,9 @@ class JAVInfoGetter:
         info = dict()
         link = self.GetWebContent(bangou)
 
-        #print(self.soup.prettify())
-        info["bangou"] = self.ParseBangou() # TODO: make sure different bangou has one copy. e.g, mum-130, mum130
+        # print(self.soup.prettify())
+        # TODO: make sure different bangou has one copy. e.g, mum-130, mum130
+        info["bangou"] = self.ParseBangou()
         info["title"] = self.ParseTitle(info["bangou"])
         info["tags"] = self.ParseTag()
         info["director"] = self.ParseDirector()
@@ -51,12 +57,14 @@ class JAVInfoGetter:
         info["link"] = link
 
         if not info["title"]:
-            print(f"{colorama.Back.RED}Parse {bangou} failed. File name {fileName}{colorama.Back.RESET}")
+            print(
+                f"{colorama.Back.RED}Parse {bangou} failed. File name {fileName}{colorama.Back.RESET}")
             return info, False
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
         self.dataManager.Add(info)
-        time.sleep(self.setting.getInfoInterval) # XXX: use timer instead sleep
+        # XXX: use timer instead sleep
+        time.sleep(self.setting.getInfoInterval)
 
         return info, True
 
@@ -68,7 +76,8 @@ class JAVInfoGetter:
 
     def ParseTitle(self, bangou):
         try:
-            title = self.soup.select_one("#video_title").select_one("a").getText()
+            title = self.soup.select_one(
+                "#video_title").select_one("a").getText()
             title = title.replace(bangou, "")
             return title.strip(" ")
         except:
@@ -119,7 +128,7 @@ class JAVInfoGetter:
     def ParseThumbs(self):
         try:
             imgs = self.soup.select_one(".previewthumbs").select("img")
-            imgs = imgs[1:] # remove "../img/player.gif"
+            imgs = imgs[1:]  # remove "../img/player.gif"
             imgs = [img["src"] for img in imgs]
             return imgs
         except:
@@ -127,7 +136,8 @@ class JAVInfoGetter:
 
     def ParseRate(self):
         try:
-            text = self.soup.select_one("#video_review").select_one(".score").getText()
+            text = self.soup.select_one(
+                "#video_review").select_one(".score").getText()
             rate = re.search("(\d+.*\d)", text).group(0)
             return str(float(rate))
         except:

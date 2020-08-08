@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+
 class DataManager:
     def __init__(self, setting):
         self.setting = setting
@@ -18,7 +19,7 @@ class DataManager:
                     self.dbdata = json.loads(dbtext)
 
         print("read db")
-        #print(self.dbdata)
+        # print(self.dbdata)
 
     def Add(self, info):
         self.dbdata.update({info["bangou"]: info})

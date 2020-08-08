@@ -1,5 +1,6 @@
 import json
 
+
 class Setting:
     def __init__(self):
         with open("config.json") as configFile:
