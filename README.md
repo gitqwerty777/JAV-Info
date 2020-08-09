@@ -66,16 +66,12 @@ Failed requests will also be saved, clean the database if something went wrong.
 ## Future Work
 
 - Execute
-  - save thumbnails
   - fill video metadata in file
   - options for new folder
-  - options to ask before every rename operation
 - FileName
-  - update different bangou
-- Info
-  - add info sources website
+  - fix various types of bangou
 - Database
-  - use other method instead load all file into memory
+  - use other method instead load into memory
 - UI
   - interface to search database
 
