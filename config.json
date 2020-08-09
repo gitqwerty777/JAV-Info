@@ -1,11 +1,22 @@
 {
-    "fileExts": ["*.mp4", "*.avi", "*.mkv", "*.avi", "*.flv", "*.rmvb", "*.rm", "*.m4v", "*.asf", "*.wmv", "*.webm"],
-    "fileDir": ".",
+    "fileExts": [
+        "*.mp4",
+        "*.avi",
+        "*.mkv",
+        "*.flv",
+        "*.rmvb",
+        "*.rm",
+        "*.m4v",
+        "*.asf",
+        "*.wmv",
+        "*.webm"
+    ],
+    "fileDir": "",
     "getInfoInterval": 1,
-    "fileNameFormat": "{tags}{actors}{bangou}{title}",
+    "fileNameFormat": "{bangou}-{title}",
     "language": "tw",
     "saveAlbum": true,
     "dryRun": false,
     "maxFileLength": 255,
-    "minFileSizeMB": 50
+    "minFileSizeMB": 200
 }
