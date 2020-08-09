@@ -34,7 +34,7 @@ class Executor:
         # TODO: fill video meta description in video file
         # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
 
-    def Rename(self, info, path, index):  # TODO: refact
+    def Rename(self, info, path, index):
         newFileName = self.setting.fileNameFormat
         for key in info:
             infokey = "{" + key + "}"
@@ -45,26 +45,17 @@ class Executor:
                     infovalue = infovalue + "[" + element + "]"
             newFileName = newFileName.replace(infokey, infovalue)
 
+        # handle multiple files with the same bangou
+        numberStr = ("_" + str(index+1)) if (index != -1) else ""
         # handle file name too long error
-        if index == -1:
-            if lenInBytes(newFileName) + lenInBytes(path.suffix) > self.setting.maxFileLength:
-                print(f"File name too long: {newFileName}")
-                maxFileLength = self.setting.maxFileLength - \
-                    lenInBytes(path.suffix)
-                while lenInBytes(newFileName) > maxFileLength:
-                    newFileName = newFileName[0:-1]
-                print(f"After truncate file name: {newFileName}")
-            newName = newFileName + path.suffix
-        else:  # handle multiple files with the same bangou
-            numberStr = "_" + str(index+1)
-            if lenInBytes(newFileName) + lenInBytes(path.suffix) + lenInBytes(numberStr) > self.setting.maxFileLength:
-                print(f"File name too long: {newFileName}")
-                maxFileLength = self.setting.maxFileLength - \
-                    lenInBytes(path.suffix) - lenInBytes(numberStr)
-                while lenInBytes(newFileName) > maxFileLength:
-                    newFileName = newFileName[0:-1]
-                print(f"After truncate file name: {newFileName}")
-            newName = newFileName + numberStr + path.suffix
+        if lenInBytes(newFileName) + lenInBytes(numberStr) + lenInBytes(path.suffix) > self.setting.maxFileLength:
+            print(f"File name too long: {newFileName}")
+            maxFileLength = self.setting.maxFileLength - \
+                lenInBytes(path.suffix) - lenInBytes(numberStr)
+            while lenInBytes(newFileName) > maxFileLength:
+                newFileName = newFileName[0:-1]
+            print(f"After truncate file name: {newFileName}")
+        newName = newFileName + numberStr + path.suffix
 
         if path.name == newName:
             print(
@@ -79,10 +70,16 @@ class Executor:
         print(f"Rename {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET}\n" +
               f"To     {colorama.Back.GREEN}{str(newPath)}{colorama.Back.RESET}")
 
-        # TODO: option to ask before rename
-
         if self.setting.dryRun:
             return
+
+        if self.setting.renameCheck:
+            print(
+                f"{colorama.Back.BLUE}Do you want to execute rename?(Y/n){colorama.Back.RESET}")
+            response = input()
+            if response.lower() != "n": # TODO: immediate check without enter
+                print("User cancel rename")
+                return
 
         try:
             path.rename(newPath)

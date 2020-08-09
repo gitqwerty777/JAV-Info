@@ -13,10 +13,11 @@
     ],
     "fileDir": "",
     "getInfoInterval": 1,
-    "fileNameFormat": "{bangou}-{title}",
+    "fileNameFormat": "{bangou}{title}",
     "language": "tw",
     "saveAlbum": true,
-    "dryRun": false,
+    "dryRun": true,
     "maxFileLength": 255,
-    "minFileSizeMB": 200
+    "minFileSizeMB": 200,
+    "renameCheck": true
 }

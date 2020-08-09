@@ -16,6 +16,8 @@ class Setting:
             self.dryRun = settingJson["dryRun"]
             self.maxFileLength = settingJson["maxFileLength"]
             self.minFileSizeMB = settingJson["minFileSizeMB"]
+            self.renameCheck = settingJson["renameCheck"]
+            # TODO: enable db or not
         except:
             print("read config file failed")
             exit(1)
