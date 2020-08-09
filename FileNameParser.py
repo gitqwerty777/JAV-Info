@@ -58,7 +58,7 @@ class FileNameParser:
                 if result:
                     bangou = result.group(1) + "-" + result.group(2)
 
-            if bangou == "mp4":  # special case
+            if bangou == "MP-4":  # special case
                 bangou = ""
             return bangou
         except:

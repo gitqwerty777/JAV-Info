@@ -77,6 +77,8 @@ Failed requests will also be saved, so clean the database if something went wron
 - UI
   - interface to search local database
 - Add makefile
+- Config
+  - verbose output
 
 ## Source Website
 

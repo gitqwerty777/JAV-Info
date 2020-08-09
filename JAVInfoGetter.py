@@ -16,6 +16,7 @@ class JAVInfoGetter:
         self.dataManager = dataManager
 
     def GetInfo(self, bangou, fileName):
+        # TODO: move search database out of there
         info = self.dataManager.Search(bangou)
         if info:
             if info["title"]:
@@ -46,6 +47,9 @@ class JAVInfoGetter:
         if not info["title"]:
             info["bangou"] = bangou
             return info, False
+        else:
+            info["title"] = info["title"].replace(
+                info["bangou"], "").strip(" ")
 
         self.dataManager.Add(info)
         print(json.dumps(info, indent=4, ensure_ascii=False))
@@ -90,10 +94,8 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
 
     def ParseTitle(self, bangou):
         try:
-            title = self.soup.select_one(
+            return self.soup.select_one(
                 "#video_title").select_one("a").getText()
-            title = title.replace(bangou, "")
-            return title.strip(" ")
         except:
             return ""
 
@@ -139,7 +141,7 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
         except:
             return ""
 
-    def ParseThumbs(self): # FIXME: sometimes no thumb
+    def ParseThumbs(self):  # FIXME: sometimes no thumb
         try:
             imgs = self.soup.select_one(".previewthumbs").select("img")
             imgs = imgs[1:]  # remove "../img/player.gif"
@@ -163,11 +165,11 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
     def __init__(self, setting, dataManager):
         super().__init__(setting, dataManager)
 
-    def GetWebContent(self, bangou):
+    def GetWebContent(self, bangou):  # XXX: improve
         link = "http://javdb.com/search?q=" + bangou
         response = requests.get(link)
         self.soup = BeautifulSoup(response.text, "html.parser")
-        if not self.soup.select_one("#videos"):  # has multiple search result
+        if not self.soup.select_one("#videos"):
             return ""
         try:  # TODO: check try range
             link = "http://javdb.com/" + \
