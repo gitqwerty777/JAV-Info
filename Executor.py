@@ -120,7 +120,8 @@ class Executor:
             return
 
         for index, thumb in enumerate(info["thumbs"]):
-            fileName = info["bangou"] + "_thumb" + str(index) + ".jpg"
+            fileName = info["bangou"] + "_thumb" + \
+                str(index) + ".jpg"  # TODO: fill leading 0 of index
             filePath = Path(path.parents[0] / fileName)
 
             if filePath.exists():

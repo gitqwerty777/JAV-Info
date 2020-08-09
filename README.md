@@ -1,4 +1,4 @@
-A simple tool to rename video files by jav unique id(bangou).
+A simple tool to rename local video files using jav unique id(bangou).
 
 ## Requirement
 
@@ -25,7 +25,7 @@ Change config in `config.json`
 | fileExts        | Legal file extensions to rename, default is video files                                    |
 | getInfoInterval | Time interval to retrieve data from source website in second, do not set too small         |
 | fileNameFormat  | Format of new file name, see more below                                                    |
-| language        | `tw`, `cn`, `en`, `ja`                                                                     |
+| language        | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                               |
 | saveAlbum       | Save album image in the same directory of video file                                       |
 | saveThumb       | Save thumbnails in the same directory of video file                                        |
 | dryRun          | Run without real execution                                                                 |
@@ -35,7 +35,7 @@ Change config in `config.json`
 
 ### Tags in fileNameFormat
 
-Recommend to use `{bangou}` in order to do rename later.
+Recommend to include `{bangou}` in order to do further rename.
 
 | Tags       | Description                                                     |
 | ---------- | --------------------------------------------------------------- |
@@ -58,12 +58,12 @@ All queries will be saved in `db-{language}.json`.
 
 You can do dry run to check the rename progress and then execute without retrieving data again.
 
-Failed requests will also be saved, clean the database if something went wrong.
+Failed requests will also be saved, so clean the database if something went wrong.
 
 ## Note
 
-- input file name should include bangou, or it will not be renamed
-- if there exist multiple files that have the same bangou, they will be renamed with serial number, ordered by original file name
+- Input filename should include bangou, or it cannot be renamed
+- If there exist multiple files that have the same bangou, they will be renamed with serial number, ordered by original file name
 
 ## Future Work
 
@@ -73,9 +73,10 @@ Failed requests will also be saved, clean the database if something went wrong.
 - FileName
   - fix various types of bangou
 - Database
-  - use other method instead load into memory
+  - use other method instead directly loading into memory
 - UI
-  - interface to search database
+  - interface to search local database
+- Add makefile
 
 ## Source Website
 
