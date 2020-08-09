@@ -25,7 +25,8 @@ class Executor:
             f"============== handle bangou {colorama.Back.YELLOW}{info['bangou']}{colorama.Back.RESET} ==================")
         if self.setting.saveAlbum:
             self.SaveAlbum(info, path)
-        # TODO: save thumbs
+        if self.setting.saveThumb:
+            self.SaveThumb(info, path)
 
     def HandleFile(self, info, path, index=-1):
         print(
@@ -77,7 +78,7 @@ class Executor:
             print(
                 f"{colorama.Back.BLUE}Do you want to execute rename?(Y/n){colorama.Back.RESET}")
             response = input()
-            if response.lower() != "n": # TODO: immediate check without enter
+            if response.lower() != "n":  # TODO: immediate check without enter
                 print("User cancel rename")
                 return
 
@@ -89,6 +90,10 @@ class Executor:
             print(e)
 
     def SaveAlbum(self, info, path):
+        if not info["album"]:
+            print("Album link not found")
+            return
+
         albumFileName = info["bangou"] + ".jpg"
         albumPath = Path(path.parents[0] / albumFileName)
 
@@ -96,16 +101,42 @@ class Executor:
             print(
                 f"Album {colorama.Back.BLUE}{str(albumPath)}{colorama.Back.RESET} already exists")
             return
-        self.DoSaveAlbum(info, albumPath)
+        self.DoSaveAlbum(info["album"], albumPath)
 
-    def DoSaveAlbum(self, info, albumPath):
+    def DoSaveAlbum(self, fileURL, albumPath):
         print(
-            f"Save album image {colorama.Back.GREEN}{str(albumPath)}{colorama.Back.RESET}")
+            f"Save album {colorama.Back.GREEN}{str(albumPath)}{colorama.Back.RESET}")
 
         if self.setting.dryRun:
             return
 
         with open(albumPath, 'wb') as albumFile:
-            fileURL = info["album"]
             fileObject = requests.get(fileURL)
             albumFile.write(fileObject.content)
+
+    def SaveThumb(self, info, path):
+        if not info["thumbs"]:
+            print("Thumbnail link not found")
+            return
+
+        for index, thumb in enumerate(info["thumbs"]):
+            fileName = info["bangou"] + "_thumb" + str(index) + ".jpg"
+            filePath = Path(path.parents[0] / fileName)
+
+            if filePath.exists():
+                print(
+                    f"Thumbnail {colorama.Back.BLUE}{str(filePath)}{colorama.Back.RESET} already exists")
+                continue
+
+            self.DoSaveThumb(thumb, filePath)
+
+    def DoSaveThumb(self, fileURL, filePath):
+        print(
+            f"Save thumbnail {colorama.Back.GREEN}{str(filePath)}{colorama.Back.RESET}")
+
+        if self.setting.dryRun:
+            return
+
+        with open(filePath, 'wb') as thumbFile:
+            fileObject = requests.get(fileURL)
+            thumbFile.write(fileObject.content)

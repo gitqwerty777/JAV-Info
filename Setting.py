@@ -17,6 +17,7 @@ class Setting:
             self.maxFileLength = settingJson["maxFileLength"]
             self.minFileSizeMB = settingJson["minFileSizeMB"]
             self.renameCheck = settingJson["renameCheck"]
+            self.saveThumb = settingJson["saveThumb"]
             # TODO: enable db or not
         except:
             print("read config file failed")

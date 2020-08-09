@@ -16,8 +16,9 @@
     "fileNameFormat": "{bangou}{title}",
     "language": "tw",
     "saveAlbum": true,
-    "dryRun": true,
+    "saveThumb": true,
+    "dryRun": false,
     "maxFileLength": 255,
     "minFileSizeMB": 200,
-    "renameCheck": true
+    "renameCheck": false
 }

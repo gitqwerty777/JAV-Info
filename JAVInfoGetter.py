@@ -139,7 +139,7 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
         except:
             return ""
 
-    def ParseThumbs(self):
+    def ParseThumbs(self): # FIXME: sometimes no thumb
         try:
             imgs = self.soup.select_one(".previewthumbs").select("img")
             imgs = imgs[1:]  # remove "../img/player.gif"
