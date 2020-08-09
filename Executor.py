@@ -109,6 +109,6 @@ class Executor:
             return
 
         with open(albumPath, 'wb') as albumFile:
-            fileURL = "http:" + info["album"]
+            fileURL = info["album"]
             fileObject = requests.get(fileURL)
             albumFile.write(fileObject.content)

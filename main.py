@@ -2,7 +2,7 @@ import colorama
 from Setting import Setting
 from FileNameParser import FileNameParser
 from DataManager import DataManager
-from JAVInfoGetter import JAVInfoGetter
+from JAVInfoGetter import JAVInfoGetter_javlibrary, JAVInfoGetter_javdb
 from Executor import Executor
 
 if __name__ == "__main__":
@@ -10,7 +10,8 @@ if __name__ == "__main__":
     setting = Setting()
     fileNameParser = FileNameParser(setting.fileExts, setting.minFileSizeMB)
     dataManager = DataManager(setting)
-    infoGetter = JAVInfoGetter(setting, dataManager)
+    infoGetters = [JAVInfoGetter_javlibrary(setting, dataManager), JAVInfoGetter_javdb(
+        setting, dataManager)]
     executor = Executor(setting)
 
     if setting.dryRun:
@@ -23,8 +24,15 @@ if __name__ == "__main__":
 
     fileNames = fileNameParser.GetFiles(setting.fileDir)
     for bangou in fileNames:
-        info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
+        for infoGetter in infoGetters:  # TODO: test database update for multiple infogetters
+            info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
+            if not success:
+                continue
+            # TODO: add to database at here
         if not success:
+            print(
+                f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}{colorama.Back.RESET}")
+            dataManager.Add(info)
             continue
         executor.HandleFiles(info, bangou, fileNames)
 

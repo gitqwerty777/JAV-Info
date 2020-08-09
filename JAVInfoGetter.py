@@ -1,3 +1,4 @@
+import re
 import time
 import json
 import requests
@@ -13,25 +14,6 @@ class JAVInfoGetter:
     def __init__(self, setting, dataManager):
         self.setting = setting
         self.dataManager = dataManager
-
-    def GetWebContent(self, bangou):
-        link = "http://www.javlibrary.com/" + self.setting.language + \
-            "/vl_searchbyid.php?keyword=" + bangou  # TODO: add another source to get info
-        response = requests.get(link)
-        self.soup = BeautifulSoup(response.text, "html.parser")
-
-        if self.soup.select_one(".videothumblist"):  # has multiple search result
-            try:
-                link = "http://www.javlibrary.com/" + self.setting.language + "/" + \
-                    self.soup.select_one(".videothumblist").select_one(
-                        ".video").select_one("a")["href"]
-                print(link)
-                response = requests.get(link)
-                self.soup = BeautifulSoup(response.text, "html.parser")
-            except:
-                pass
-
-        return link
 
     def GetInfo(self, bangou, fileName):
         info = self.dataManager.Search(bangou)
@@ -62,10 +44,7 @@ class JAVInfoGetter:
         info["link"] = link
 
         if not info["title"]:
-            print(
-                f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {fileName}{colorama.Back.RESET}")
             info["bangou"] = bangou
-            self.dataManager.Add(info)
             return info, False
 
         self.dataManager.Add(info)
@@ -79,6 +58,29 @@ class JAVInfoGetter:
         time.sleep(self.setting.getInfoInterval)
 
         return info, True
+
+
+class JAVInfoGetter_javlibrary(JAVInfoGetter):
+    def __init__(self, setting, dataManager):
+        super().__init__(setting, dataManager)
+
+    def GetWebContent(self, bangou):
+        link = "http://www.javlibrary.com/" + self.setting.language + \
+            "/vl_searchbyid.php?keyword=" + bangou
+        response = requests.get(link)
+        self.soup = BeautifulSoup(response.text, "html.parser")
+
+        if self.soup.select_one(".videothumblist"):  # has multiple search result
+            try:
+                link = "http://www.javlibrary.com/" + self.setting.language + "/" + \
+                    self.soup.select_one(".videothumblist").select_one(
+                        ".video").select_one("a")["href"]
+                response = requests.get(link)
+                self.soup = BeautifulSoup(response.text, "html.parser")
+            except:
+                link = ""
+
+        return link
 
     def ParseBangou(self):
         try:
@@ -121,7 +123,7 @@ class JAVInfoGetter:
 
     def ParseAlbum(self):
         try:
-            return self.soup.select_one("#video_jacket").select_one("img").get("src")
+            return "http:" + self.soup.select_one("#video_jacket").select_one("img").get("src")
         except:
             return ""
 
@@ -152,5 +154,113 @@ class JAVInfoGetter:
                 "#video_review").select_one(".score").getText()
             rate = re.search("(\d+.*\d)", text).group(0)
             return str(float(rate))
+        except:
+            return ""
+
+
+# TODO: now only support english version
+class JAVInfoGetter_javdb(JAVInfoGetter):
+    def __init__(self, setting, dataManager):
+        super().__init__(setting, dataManager)
+
+    def GetWebContent(self, bangou):
+        link = "http://javdb.com/search?q=" + bangou
+        response = requests.get(link)
+        self.soup = BeautifulSoup(response.text, "html.parser")
+        if not self.soup.select_one("#videos"):  # has multiple search result
+            return ""
+        try:  # TODO: check try range
+            link = "http://javdb.com/" + \
+                self.soup.select_one("#videos").select_one("a")[
+                    "href"] + "?locale=en"
+            response = requests.get(link)
+            self.soup = BeautifulSoup(response.text, "html.parser")
+            infos = self.soup.select_one(
+                ".video-panel-info").select(".panel-block")
+        except:
+            # TODO: get web content failed
+            return link
+
+        self.infoDict = dict()
+        for info in infos:
+            key = info.select_one("strong")
+            if not key:
+                continue
+            key = key.getText().strip(":")
+            value = info.select_one("span").getText()
+            self.infoDict[key] = value
+        return link
+
+    def ParseBangou(self):
+        try:
+            return self.infoDict["ID"]
+        except:
+            return ""
+
+    def ParseTitle(self, bangou):
+        try:
+            return self.soup.select_one(".title").select_one("strong").getText()
+        except:
+            return ""
+
+    def ParseTag(self):
+        try:
+            tags = self.infoDict["Tags"].split(",")
+            tags = [tag.strip(u"\xa0").strip(" ") for tag in tags]
+            return tags
+        except:
+            return ""
+
+    def ParseMaker(self):
+        try:
+            return self.infoDict["Maker"]
+        except:
+            return ""
+
+    def ParseDirector(self):
+        try:
+            return self.infoDict["Director"]
+        except:
+            return ""
+
+    def ParseActor(self):
+        try:
+            return self.infoDict["Actor(s)"]  # TODO: actors
+        except:
+            return ""
+
+    def ParseAlbum(self):
+        try:
+            return self.soup.select_one(".video-cover")["src"]
+        except:
+            return ""
+
+    def ParseLength(self):  # TODO: duration
+        try:
+            length = self.infoDict["Duration"]
+            length = re.search("\d+", length).group(0)
+            return length
+        except:
+            return ""
+
+    def ParseDate(self):
+        try:
+            return self.infoDict["Date"]
+        except:
+            return ""
+
+    def ParseThumbs(self):
+        try:
+            imgs = self.soup.select_one(".preview-images").select("a")
+            imgs = [img["href"] for img in imgs]
+            return imgs
+        except:
+            return ""
+
+    def ParseRate(self):  # TODO: rating
+        try:
+            rate = self.infoDict["Rating"]
+            rate = re.search("\d+.\d+", rate).group(0)
+            return rate
         except:
             return ""
