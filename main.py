@@ -26,9 +26,11 @@ if __name__ == "__main__":
     for bangou in fileNames:
         for infoGetter in infoGetters:  # TODO: test database update for multiple infogetters
             info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
-            if not success:
+            if success:
+                # TODO: add to database at here
+                break
+            else:
                 continue
-            # TODO: add to database at here
         if not success:
             print(
                 f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}{colorama.Back.RESET}")

@@ -37,10 +37,10 @@ class JAVInfoGetter:
         info["maker"] = self.ParseMaker()
         info["actors"] = self.ParseActor()
         info["album"] = self.ParseAlbum()
-        info["length"] = self.ParseLength()
+        info["duration"] = self.ParseDuration()
         info["date"] = self.ParseDate()
         info["thumbs"] = self.ParseThumbs()
-        info["rate"] = self.ParseRate()
+        info["rating"] = self.ParseRating()
         info["link"] = link
 
         if not info["title"]:
@@ -127,7 +127,7 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
         except:
             return ""
 
-    def ParseLength(self):
+    def ParseDuration(self):
         try:
             return self.soup.select_one("#video_length").select_one(".text").getText()
         except:
@@ -148,7 +148,7 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
         except:
             return ""
 
-    def ParseRate(self):
+    def ParseRating(self):
         try:
             text = self.soup.select_one(
                 "#video_review").select_one(".score").getText()
@@ -235,11 +235,11 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
         except:
             return ""
 
-    def ParseLength(self):  # TODO: duration
+    def ParseDuration(self):
         try:
-            length = self.infoDict["Duration"]
-            length = re.search("\d+", length).group(0)
-            return length
+            duration = self.infoDict["Duration"]
+            duration = re.search("\d+", duration).group(0)
+            return duration
         except:
             return ""
 
@@ -257,10 +257,10 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
         except:
             return ""
 
-    def ParseRate(self):  # TODO: rating
+    def ParseRating(self):
         try:
-            rate = self.infoDict["Rating"]
-            rate = re.search("\d+.\d+", rate).group(0)
-            return rate
+            rating = self.infoDict["Rating"]
+            rating = re.search("\d+.\d+", rating).group(0)
+            return rating
         except:
             return ""

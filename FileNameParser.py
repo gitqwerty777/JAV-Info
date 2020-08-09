@@ -39,7 +39,7 @@ class FileNameParser:
                 fileNames[bangou] = [fileName]
 
         pp = CreatePrettyPrinter()
-        print("find video files")
+        print("find legal video files")
         pp.pprint(fileNames)
 
         return fileNames

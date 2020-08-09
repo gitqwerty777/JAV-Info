@@ -43,11 +43,12 @@ Recommend to use `{bangou}` in order to do rename later.
 | {director} |                                                                 |
 | {maker}    | Maker of the video, usually related to the first part of bangou |
 | {actors}   |                                                                 |
-| {length}   | The length of video in minutes                                  |
+| {duration} | The length of video in minutes                                  |
 | {date}     | Release date                                                    |
-| {rate}     | Rating in javlibrary                                            |
+| {rating}   | Rating in javlibrary                                            |
 | {album}    | Link of album image, **not recommend to use**                   |
 | {thumbs}   | Link of thumbnails, **not recommend to use**                    |
+| {link}     | Link of information source, **not recommend to use**            |
 
 ## Database
 
@@ -73,6 +74,8 @@ Failed requests will also be saved, clean the database if something went wrong.
   - update different bangou
 - Info
   - add info sources website
+- Database
+  - use other method instead load all file into memory
 - UI
   - interface to search database
 
