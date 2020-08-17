@@ -1,4 +1,4 @@
-A simple tool to rename local video files using jav unique id(bangou).
+A simple tool to rename local video files, download album image and thumbnails images using jav unique id(bangou)
 
 ## Requirement
 
@@ -19,19 +19,20 @@ pip install colorama
 
 Change config in `config.json`
 
-| Key             | Description                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------ |
-| fileDir         | Input directory                                                                            |
-| fileExts        | Legal file extensions to rename, default is video files                                    |
-| getInfoInterval | Time interval to retrieve data from source website in second, do not set too small         |
-| fileNameFormat  | Format of new file name, see more below                                                    |
-| language        | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                               |
-| saveAlbum       | Save album image in the same directory of video file                                       |
-| saveThumb       | Save thumbnails in the same directory of video file                                        |
-| dryRun          | Run without real execution                                                                 |
-| maxFileLength   | Maximum file name length in bytes, reduce this value if "file name too long" error happens |
-| minFileSizeMB   | Minimum file size(in MB) to execute                                                        |
-| renameCheck     | Ask before every rename operation                                                          |
+| Key             | Description                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| fileDir         | Input directory                                                                                             |
+| fileExts        | Legal file extensions to rename, default is video files                                                     |
+| getInfoInterval | Time interval to retrieve data from source website in second, do not set too small                          |
+| fileNameFormat  | Format of new file name, see more below                                                                     |
+| language        | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |
+| saveAlbum       | Save album image in the same directory of video file                                                        |
+| saveThumb       | Save thumbnails in the same directory of video file                                                         |
+| dryRun          | Run without real execution                                                                                  |
+| maxFileLength   | Maximum file name length in bytes, reduce this value if "file name too long" error happens                  |
+| minFileSizeMB   | Minimum file size(in MB) to execute                                                                         |
+| renameCheck     | Ask before every rename operation                                                                           |
+| ignoreWords     | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
 
 ### Tags in fileNameFormat
 

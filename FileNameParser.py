@@ -39,9 +39,11 @@ class FileNameParser:
             else:
                 fileNames[bangou] = [fileName]
 
-        f = open("filebangous.txt", "w", encoding="utf-8")
+        f = open("file-bangou.txt", "w", encoding="utf-8")
+        print("Legal video files with bangou")
         pp = CreatePrettyPrinter(f)
-        print("find legal video files")
+        pp.pprint(fileNames)
+        pp = CreatePrettyPrinter()
         pp.pprint(fileNames)
 
         return fileNames

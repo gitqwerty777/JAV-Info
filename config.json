@@ -12,7 +12,10 @@
         "*.webm"
     ],
     "fileDir": "",
-    "getInfoInterval": 1,
+    "ignoreWords": [
+        "1080p"
+    ],
+    "getInfoInterval": 0.5,
     "fileNameFormat": "{bangou}{title}",
     "language": "tw",
     "saveAlbum": true,
