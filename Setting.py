@@ -18,6 +18,7 @@ class Setting:
             self.minFileSizeMB = settingJson["minFileSizeMB"]
             self.renameCheck = settingJson["renameCheck"]
             self.saveThumb = settingJson["saveThumb"]
+            self.ignoreWords = settingJson["ignoreWords"]
             # TODO: enable db or not
         except:
             print("read config file failed")

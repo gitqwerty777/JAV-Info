@@ -3,14 +3,15 @@ import pprint
 from pathlib import Path
 
 
-def CreatePrettyPrinter():
-    return pprint.PrettyPrinter(indent=0, width=60)
+def CreatePrettyPrinter(stream=None):
+    return pprint.PrettyPrinter(indent=0, width=60, stream=stream)
 
 
 class FileNameParser:
-    def __init__(self, fileExts, minFileSizeMB):
+    def __init__(self, fileExts, minFileSizeMB, ignoreWords):
         self.fileExts = fileExts
         self.minFileSizeMB = minFileSizeMB
+        self.ignoreWords = ignoreWords
 
     def GetFiles(self, fileDir):
         videoFileList = []
@@ -38,7 +39,8 @@ class FileNameParser:
             else:
                 fileNames[bangou] = [fileName]
 
-        pp = CreatePrettyPrinter()
+        f = open("filebangous.txt", "w", encoding="utf-8")
+        pp = CreatePrettyPrinter(f)
         print("find legal video files")
         pp.pprint(fileNames)
 
@@ -46,20 +48,26 @@ class FileNameParser:
 
     def ParseBangou(self, fileName):
         try:
+            fileName = fileName.lower()
+            for ignoreWord in self.ignoreWords:
+                fileName = fileName.replace(ignoreWord, "")
+
             # TODO: fit different bangou format
-            result = re.search("([a-zA-Z]+)\-+(\d+)", fileName)
+            result = re.search("([a-zA-Z]{1,5})\-+(\d{3,5})", fileName)
 
             bangou = ""
             if result:
                 bangou = result.group(1) + "-" + result.group(2)
             else:
                 # non-strict version
-                result = re.search("([a-zA-Z]+)\s*\-*\s*(\d+)", fileName)
+                result = re.search(
+                    "([a-zA-Z]{1,5})\s*\-*\s*(\d{3,5})", fileName)
                 if result:
                     bangou = result.group(1) + "-" + result.group(2)
 
             if bangou == "MP-4":  # special case
                 bangou = ""
+
             return bangou
         except:
             return ""

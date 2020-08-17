@@ -5,7 +5,7 @@ import requests
 import colorama
 from bs4 import BeautifulSoup
 
-
+# TODO: find chinese title source
 def getText(element):
     return element.getText()
 
