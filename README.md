@@ -72,7 +72,7 @@ Failed requests will also be saved, so clean the database if something went wron
   - fill video metadata in file
   - options for new folder
 - FileName
-  - fix various types of bangou
+  - fit various types of bangou
 - Database
   - use other method instead directly loading into memory
 - UI
@@ -80,6 +80,8 @@ Failed requests will also be saved, so clean the database if something went wron
 - Add makefile
 - Config
   - verbose output
+- Crawler
+  - find database which has chinese title
 
 ## Source Website
 

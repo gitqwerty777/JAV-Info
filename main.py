@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     fileNames = fileNameParser.GetFiles(setting.fileDir)
     for bangou in fileNames:
-        for infoGetter in infoGetters:  # TODO: test database update for multiple infogetters
+        for infoGetter in infoGetters:
             info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
             if success:
                 # TODO: add to database at here
