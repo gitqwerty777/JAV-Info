@@ -4,6 +4,7 @@ from FileNameParser import FileNameParser
 from DataManager import DataManager
 from JAVInfoGetter import JAVInfoGetter_javlibrary, JAVInfoGetter_javdb
 from Executor import Executor
+from getch import getch
 
 if __name__ == "__main__":
     colorama.init()
@@ -19,7 +20,8 @@ if __name__ == "__main__":
         print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
     else:
         print(f"{colorama.Back.RED}This is not dry run version.\nDry run is recommended before execution.\nDo you want to continue?(y/N){colorama.Back.RESET}")
-        response = input()
+        response = getch()
+        print(response)
         if response.lower() != "y":
             exit(0)
 

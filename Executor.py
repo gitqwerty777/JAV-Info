@@ -1,5 +1,6 @@
 import requests
 import colorama
+from getch import getch
 from pathlib import Path
 
 
@@ -77,8 +78,9 @@ class Executor:
         if self.setting.renameCheck:
             print(
                 f"{colorama.Back.BLUE}Do you want to execute rename?(Y/n){colorama.Back.RESET}")
-            response = input()
-            if response.lower() != "n":  # TODO: immediate check without enter
+            response = getch()
+            print(response)
+            if response.lower() == "n":
                 print("User cancel rename")
                 return
 
