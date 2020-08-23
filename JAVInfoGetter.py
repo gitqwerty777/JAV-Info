@@ -5,7 +5,9 @@ import requests
 import colorama
 from bs4 import BeautifulSoup
 
-# TODO: find chinese title source
+# TODO: find chinese title source website
+
+
 def getText(element):
     return element.getText()
 
@@ -30,7 +32,6 @@ class JAVInfoGetter:
         link = self.GetWebContent(bangou)
 
         # print(self.soup.prettify())
-        # TODO: make sure different bangou has one copy. e.g, mum-130, mum130
         info["bangou"] = self.ParseBangou()
         info["title"] = self.ParseTitle(info["bangou"])
         info["tags"] = self.ParseTag()
@@ -175,7 +176,11 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
             link = "http://javdb.com/" + \
                 self.soup.select_one("#videos").select_one("a")[
                     "href"] + "?locale=en"
-            response = requests.get(link)
+            if self.setting.javdbToken:
+                cookies = {"remember_me_token": self.setting.javdbToken}
+            else:
+                cookies = dict()
+            response = requests.get(link, cookies=cookies)
             self.soup = BeautifulSoup(response.text, "html.parser")
             infos = self.soup.select_one(
                 ".video-panel-info").select(".panel-block")

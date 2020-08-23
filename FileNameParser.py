@@ -7,6 +7,63 @@ def CreatePrettyPrinter(stream=None):
     return pprint.PrettyPrinter(indent=0, width=60, stream=stream)
 
 
+class BangouHandler:
+    def __init__(self, next):
+        self.next = next
+
+    def DoNext(self, fileName):
+        if self.next:
+            return self.next.Handle(fileName)
+        else:
+            return ""
+
+
+class FC2BangouHandler(BangouHandler):
+    def __init__(self, next):
+        BangouHandler.__init__(self, next)
+        self.fc2BangouRE = re.compile("(fc2)-*(ppv)*-*(\d{7})")
+
+    def Handle(self, fileName):
+        result = self.fc2BangouRE.search(fileName)
+
+        if result:
+            return result.group(1) + "-" + result.group(3)
+        else:
+            return self.DoNext(fileName)
+
+
+class GeneralBangouHandler(BangouHandler):
+    def __init__(self, next):
+        BangouHandler.__init__(self, next)
+        self.generalBangouRE = re.compile("([a-zA-Z]{1,5})\-+(\d{3,5})")
+
+    def Handle(self, fileName):
+        result = self.generalBangouRE.search(fileName)
+
+        if result:
+            return result.group(1) + "-" + result.group(2)
+        else:
+            return self.DoNext(fileName)
+
+
+class GeneralLooseBangouHandler(BangouHandler):
+    def __init__(self, next):
+        BangouHandler.__init__(self, next)
+        self.generalLooseBangouRE = re.compile(
+            "([a-zA-Z]{1,5})\s*\-*\s*(\d{3,5})")
+
+    def Handle(self, fileName):
+        result = self.generalLooseBangouRE.search(fileName)
+
+        if result:
+            bangou = result.group(1) + "-" + result.group(2)
+            if bangou == "MP-4":  # special case
+                bangou = ""
+            if bangou:
+                return bangou
+        return self.DoNext(fileName)
+
+
 class FileNameParser:
     def __init__(self, fileExts, minFileSizeMB, ignoreWords):
         self.fileExts = fileExts
@@ -49,27 +106,13 @@ class FileNameParser:
         return fileNames
 
     def ParseBangou(self, fileName):
-        try:
-            fileName = fileName.lower()
-            for ignoreWord in self.ignoreWords:
-                fileName = fileName.replace(ignoreWord, "")
+        fileName = fileName.lower()
+        for ignoreWord in self.ignoreWords:
+            fileName = fileName.replace(ignoreWord, "")
 
-            # TODO: fit different bangou format
-            result = re.search("([a-zA-Z]{1,5})\-+(\d{3,5})", fileName)
+        # TODO: fit different bangou format
+        bangouHandler = FC2BangouHandler(
+            GeneralBangouHandler(
+                GeneralLooseBangouHandler(None)))
 
-            bangou = ""
-            if result:
-                bangou = result.group(1) + "-" + result.group(2)
-            else:
-                # non-strict version
-                result = re.search(
-                    "([a-zA-Z]{1,5})\s*\-*\s*(\d{3,5})", fileName)
-                if result:
-                    bangou = result.group(1) + "-" + result.group(2)
-
-            if bangou == "MP-4":  # special case
-                bangou = ""
-
-            return bangou
-        except:
-            return ""
+        return bangouHandler.Handle(fileName)

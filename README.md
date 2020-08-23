@@ -34,6 +34,7 @@ Change config in `config.json`
 | renameCheck     | Ask before every rename operation                                                                           |
 | ignoreWords     | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
 | retryFailedDB   | Retrieve failed data in database from source website again                                                  |
+| javdbToken      | some queries from javdb needs token, login to javdb and get `remember_me_token` in cookie as token          |
 
 ### Tags in fileNameFormat
 

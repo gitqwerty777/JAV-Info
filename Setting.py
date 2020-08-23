@@ -20,6 +20,7 @@ class Setting:
             self.saveThumb = settingJson["saveThumb"]
             self.ignoreWords = settingJson["ignoreWords"]
             self.retryFailedDB = settingJson["retryFailedDB"]
+            self.javdbToken = settingJson["javdbToken"]
             # TODO: enable db or not
         except:
             print("read config file failed")
