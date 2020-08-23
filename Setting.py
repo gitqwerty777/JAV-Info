@@ -19,6 +19,7 @@ class Setting:
             self.renameCheck = settingJson["renameCheck"]
             self.saveThumb = settingJson["saveThumb"]
             self.ignoreWords = settingJson["ignoreWords"]
+            self.retryFailedDB = settingJson["retryFailedDB"]
             # TODO: enable db or not
         except:
             print("read config file failed")

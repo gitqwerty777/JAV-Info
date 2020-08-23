@@ -23,5 +23,6 @@
     "dryRun": true,
     "maxFileLength": 255,
     "minFileSizeMB": 200,
-    "renameCheck": false
+    "renameCheck": false,
+    "retryFailedDB": true
 }

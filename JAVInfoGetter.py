@@ -22,7 +22,7 @@ class JAVInfoGetter:
             if info["title"]:
                 print(f"Find success info of {bangou} in db")
                 return info, True
-            else:
+            elif not self.setting.retryFailedDB:  # use failed info in db
                 print(f"Find failed info of {bangou} in db")
                 return info, False
 
@@ -227,7 +227,7 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
 
     def ParseActor(self):
         try:
-            return self.infoDict["Actor(s)"]  # TODO: actors
+            return self.infoDict["Actor(s)"]
         except:
             return ""
 

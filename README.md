@@ -33,6 +33,7 @@ Change config in `config.json`
 | minFileSizeMB   | Minimum file size(in MB) to execute                                                                         |
 | renameCheck     | Ask before every rename operation                                                                           |
 | ignoreWords     | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
+| retryFailedDB   | Retrieve failed data in database from source website again                                                  |
 
 ### Tags in fileNameFormat
 
