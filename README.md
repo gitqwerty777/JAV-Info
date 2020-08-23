@@ -2,7 +2,7 @@ A simple tool to rename local video files, download album image and thumbnails i
 
 ## Requirement
 
-- Python3.5 or newer
+- Python3.6 or newer
 - install following python packages
 
 ```
