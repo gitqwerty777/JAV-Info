@@ -11,18 +11,18 @@
         "*.wmv",
         "*.webm"
     ],
-    "fileDir": "",
+    "fileDir": "./demo_files",
     "ignoreWords": [
         "1080p"
     ],
     "getInfoInterval": 0.5,
-    "fileNameFormat": "{bangou}{title}",
+    "fileNameFormat": "[{bangou}]{title}",
     "language": "tw",
-    "saveAlbum": true,
+    "saveAlbum": false,
     "saveThumb": false,
     "dryRun": true,
     "maxFileLength": 255,
-    "minFileSizeMB": 200,
+    "minFileSizeMB": 0,
     "renameCheck": false,
     "retryFailedDB": true,
     "javdbToken": "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkltZFljVTFHVVVoeVpUVk5abU56ZWpVeFdIcHlJZz09IiwiZXhwIjoiMjAyMC0wOS0wN1QxMDowMzoxOS4wMDBaIiwicHVyIjoiY29va2llLnJlbWVtYmVyX21lX3Rva2VuIn19--2088249807e2b55cf1e18805b3a72e6e8a0e0697"
