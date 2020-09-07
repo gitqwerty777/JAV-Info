@@ -35,7 +35,7 @@ class FC2BangouHandler(BangouHandler):
 class GeneralBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
-        self.generalBangouRE = re.compile("([a-zA-Z]{1,5})\-+(\d{3,5})")
+        self.generalBangouRE = re.compile("([a-zA-Z]{1,5})\-+(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalBangouRE.search(fileName)
@@ -50,7 +50,7 @@ class GeneralLooseBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
         self.generalLooseBangouRE = re.compile(
-            "([a-zA-Z]{1,5})\s*\-*\s*(\d{3,5})")
+            "([a-zA-Z]{1,5})\s*\-*\s*(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalLooseBangouRE.search(fileName)
@@ -81,7 +81,7 @@ class FileNameParser:
             stat = fileName.stat()
             fileSizeMB = stat.st_size >> 20
             if self.minFileSizeMB > fileSizeMB:
-                #print(f"ignore {str(fileName)} because file too small")
+                # print(f"ignore {str(fileName)} because file too small")
                 continue
 
             bangou = self.ParseBangou(fileName.name)

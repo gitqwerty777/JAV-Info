@@ -1,6 +1,16 @@
-A simple tool to rename local video files, download album image and thumbnails images using jav unique id(bangou)
+# JAV-Info
 
-## Requirement
+> A simple tool to rename local video files, download album image and thumbnails images using jav unique id(bangou)
+
+## Demo
+
+- ![Demo](demo.gif)
+
+## Usage
+
+Download Windows(.exe) version at release or using Python
+
+### Python Requirement
 
 - Python3.6 or newer
 - install following python packages
@@ -11,9 +21,7 @@ pip install beautifulsoup4
 pip install colorama
 ```
 
-## Usage
-
-`python main.py`
+Usage: `python main.py`
 
 ## Config
 

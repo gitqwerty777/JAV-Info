@@ -42,3 +42,5 @@ if __name__ == "__main__":
         executor.HandleFiles(info, bangou, fileNames)
 
     dataManager.Save()
+    print("Press Any Button to Exit")
+    getch()
