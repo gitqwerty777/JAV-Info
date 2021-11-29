@@ -7,7 +7,7 @@ def CreatePrettyPrinter(stream=None):
     return pprint.PrettyPrinter(indent=0, width=60, stream=stream)
 
 
-class BangouHandler:
+class BangouHandler:  # abstract
     def __init__(self, next):
         self.next = next
 
@@ -21,7 +21,7 @@ class BangouHandler:
 class FC2BangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
-        self.fc2BangouRE = re.compile("(fc2)-*(ppv)*-*(\d{7})")
+        self.fc2BangouRE = re.compile(r"(fc2)-*(ppv)*-*(\d{7})")
 
     def Handle(self, fileName):
         result = self.fc2BangouRE.search(fileName)
@@ -35,7 +35,7 @@ class FC2BangouHandler(BangouHandler):
 class GeneralBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
-        self.generalBangouRE = re.compile("([a-zA-Z]{1,5})\-+(\d{2,5})")
+        self.generalBangouRE = re.compile(r"([a-zA-Z]{1,5})\-+(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalBangouRE.search(fileName)
@@ -50,7 +50,7 @@ class GeneralLooseBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
         self.generalLooseBangouRE = re.compile(
-            "([a-zA-Z]{1,5})\s*\-*\s*(\d{2,5})")
+            r"([a-zA-Z]{1,5})\s*\-*\s*(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalLooseBangouRE.search(fileName)
@@ -69,6 +69,10 @@ class FileNameParser:
         self.fileExts = fileExts
         self.minFileSizeMB = minFileSizeMB
         self.ignoreWords = ignoreWords
+        # TODO: fit different bangou format
+        self.bangouHandler = FC2BangouHandler(
+            GeneralBangouHandler(
+                GeneralLooseBangouHandler(None)))
 
     def GetFiles(self, fileDir):
         videoFileList = []
@@ -96,7 +100,7 @@ class FileNameParser:
             else:
                 fileNames[bangou] = [fileName]
 
-        f = open("file-bangou.txt", "w", encoding="utf-8")
+        f = open("FilenameToBangou.txt", "w", encoding="utf-8")
         print("Legal video files with bangou")
         pp = CreatePrettyPrinter(f)
         pp.pprint(fileNames)
@@ -110,9 +114,4 @@ class FileNameParser:
         for ignoreWord in self.ignoreWords:
             fileName = fileName.replace(ignoreWord, "")
 
-        # TODO: fit different bangou format
-        bangouHandler = FC2BangouHandler(
-            GeneralBangouHandler(
-                GeneralLooseBangouHandler(None)))
-
-        return bangouHandler.Handle(fileName)
+        return self.bangouHandler.Handle(fileName)
