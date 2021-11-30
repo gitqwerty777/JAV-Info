@@ -30,7 +30,6 @@ Change config in `config.json`
 | Key             | Description                                                                                                 |
 | --------------- | ----------------------------------------------------------------------------------------------------------- |
 | fileDir         | Input directory                                                                                             |
-| fileExts        | Legal file extensions to rename, default is video files                                                     |
 | getInfoInterval | Time interval to retrieve data from source website in second, do not set too small                          |
 | fileNameFormat  | Format of new file name, see more below                                                                     |
 | language        | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |

@@ -1,16 +1,4 @@
 {
-    "fileExts": [
-        "*.mp4",
-        "*.avi",
-        "*.mkv",
-        "*.flv",
-        "*.rmvb",
-        "*.rm",
-        "*.m4v",
-        "*.asf",
-        "*.wmv",
-        "*.webm"
-    ],
     "fileDir": "./demo_files",
     "ignoreWords": [
         "1080p"

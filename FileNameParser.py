@@ -1,3 +1,4 @@
+import mimetypes
 import re
 import pprint
 from pathlib import Path
@@ -65,8 +66,7 @@ class GeneralLooseBangouHandler(BangouHandler):
 
 
 class FileNameParser:
-    def __init__(self, fileExts, minFileSizeMB, ignoreWords):
-        self.fileExts = fileExts
+    def __init__(self, minFileSizeMB, ignoreWords):
         self.minFileSizeMB = minFileSizeMB
         self.ignoreWords = ignoreWords
         # TODO: fit different bangou format
@@ -77,8 +77,23 @@ class FileNameParser:
     def GetFiles(self, fileDir):
         videoFileList = []
         path = Path(fileDir)
-        for fileExt in self.fileExts:
-            videoFileList.extend(path.rglob(fileExt))
+
+        mimetypes.init()
+        # Add new unknown video file extension if needed
+        mimetypes.add_type('video/vnd.rn-realmedia-vbr', '.rmvb')
+        mimetypes.add_type('video/rm', '.rm')
+        mimetypes.add_type('video/x-flv', '.flv')
+        mimetypes.add_type('video/dcv', '.dcv')
+
+        for file in path.glob("**/*"):
+            if file.is_dir():
+                continue
+            if file.suffix in mimetypes.types_map:
+                mimetype = mimetypes.types_map[file.suffix]
+                if "video" in mimetype:
+                    videoFileList.append(file)
+            # else:
+                # print("unknown file extension: " + file.suffix)
 
         fileNames = dict()
         for fileName in videoFileList:

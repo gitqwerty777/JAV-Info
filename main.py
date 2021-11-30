@@ -9,8 +9,7 @@ from getch import getch
 if __name__ == "__main__":
     colorama.init()
     setting = Setting()
-    fileNameParser = FileNameParser(
-        setting.fileExts, setting.minFileSizeMB, setting.ignoreWords)
+    fileNameParser = FileNameParser(setting.minFileSizeMB, setting.ignoreWords)
     dataManager = DataManager(setting)
     infoGetters = [JAVInfoGetter_javlibrary(setting, dataManager), JAVInfoGetter_javdb(
         setting, dataManager)]

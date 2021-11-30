@@ -3,11 +3,10 @@ import json
 
 class Setting:
     def __init__(self):
-        with open("config.json") as configFile:
+        with open("config.json", encoding="utf-8") as configFile:
             settingJson = json.load(configFile)
 
         try:
-            self.fileExts = settingJson["fileExts"]
             self.fileDir = settingJson["fileDir"]
             self.getInfoInterval = settingJson["getInfoInterval"]
             self.fileNameFormat = settingJson["fileNameFormat"]
