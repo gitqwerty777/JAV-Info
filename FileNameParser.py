@@ -22,13 +22,13 @@ class BangouHandler:  # abstract
 class FC2BangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
-        self.fc2BangouRE = re.compile(r"(fc2)-*(ppv)*-*(\d{7})")
+        self.fc2BangouRE = re.compile(r"(fc2)-*(ppv)*-*(\d{4,9})")
 
     def Handle(self, fileName):
         result = self.fc2BangouRE.search(fileName)
 
         if result:
-            return result.group(1) + "-" + result.group(3)
+            return "fc2-ppv-" + result.group(3)
         else:
             return self.DoNext(fileName)
 
@@ -36,7 +36,7 @@ class FC2BangouHandler(BangouHandler):
 class GeneralBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
-        self.generalBangouRE = re.compile(r"([a-zA-Z]{1,5})\-+(\d{2,5})")
+        self.generalBangouRE = re.compile(r"([a-zA-Z]{2,5})\-+(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalBangouRE.search(fileName)
@@ -51,7 +51,7 @@ class GeneralLooseBangouHandler(BangouHandler):
     def __init__(self, next):
         BangouHandler.__init__(self, next)
         self.generalLooseBangouRE = re.compile(
-            r"([a-zA-Z]{1,5})\s*\-*\s*(\d{2,5})")
+            r"([a-zA-Z]{2,5})\s*\-*\s*(\d{2,5})")
 
     def Handle(self, fileName):
         result = self.generalLooseBangouRE.search(fileName)
@@ -128,5 +128,6 @@ class FileNameParser:
         fileName = fileName.lower()
         for ignoreWord in self.ignoreWords:
             fileName = fileName.replace(ignoreWord, "")
+        fileName = fileName.replace("_", "-")
 
         return self.bangouHandler.Handle(fileName)
