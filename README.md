@@ -13,7 +13,7 @@ Download Windows(.exe) version at release or using Python
 ### Python Requirement
 
 - Python3.6 or newer
-- install following python packages
+- install following python packages(or by `requirements.txt`)
 
 ```
 pip install requests
