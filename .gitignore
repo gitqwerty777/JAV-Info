@@ -1,2 +1,6 @@
 __pycache__
-*.workspace
+*.code-workspace
+config.json
+db-*.json
+*-cookie.txt
+renameHistory.txt
