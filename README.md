@@ -10,7 +10,7 @@
 
 ## Usage
 
-Download Windows(.exe) version at release or directly use Python
+Download Windows(.exe) version at release(Deprecated❗) or directly use Python
 
 ### Requirement
 
