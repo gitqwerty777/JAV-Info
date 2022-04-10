@@ -13,5 +13,6 @@
     "minFileSizeMB": 0,
     "renameCheck": false,
     "retryFailedDB": true,
-    "javdbToken": "eyJfcmFpbHMiOnsibWVzc2FnZSI6IkltZFljVTFHVVVoeVpUVk5abU56ZWpVeFdIcHlJZz09IiwiZXhwIjoiMjAyMC0wOS0wN1QxMDowMzoxOS4wMDBaIiwicHVyIjoiY29va2llLnJlbWVtYmVyX21lX3Rva2VuIn19--2088249807e2b55cf1e18805b3a72e6e8a0e0697"
+    "javlibraryCookieFilePath": "javlibrary-cookie.txt",
+    "javdbCookieFilePath": "javdb-cookie.txt"
 }

@@ -11,6 +11,7 @@ def lenInBytes(string):
 class Executor:
     def __init__(self, setting):
         self.setting = setting
+        self.renameRecords = open("renameHistory.txt", "a", encoding="utf-8")
 
     def HandleFiles(self, info, bangou, fileNames):
         self.HandleBangou(info, fileNames[bangou][0])
@@ -51,6 +52,7 @@ class Executor:
         numberStr = ("_" + str(index+1)) if (index != -1) else ""
         # handle file name too long error
         if lenInBytes(newFileName) + lenInBytes(numberStr) + lenInBytes(path.suffix) > self.setting.maxFileLength:
+            # TODO: colorize print()
             print(f"File name too long: {newFileName}")
             maxFileLength = self.setting.maxFileLength - \
                 lenInBytes(path.suffix) - lenInBytes(numberStr)
@@ -85,6 +87,8 @@ class Executor:
                 return
 
         try:
+            self.renameRecords.write(f"{path} -> {newPath}\n")
+            self.renameRecords.flush()
             path.rename(newPath)
         except Exception as e:
             print(
