@@ -19,7 +19,8 @@ class Setting:
             self.saveThumb = settingJson["saveThumb"]
             self.ignoreWords = settingJson["ignoreWords"]
             self.retryFailedDB = settingJson["retryFailedDB"]
-            self.javdbToken = settingJson["javdbToken"]
+            self.javlibraryCookieFilePath = settingJson["javlibraryCookieFilePath"]
+            self.javdbCookieFilePath = settingJson["javdbCookieFilePath"]
             # TODO: enable db or not
         except:
             print("read config file failed")

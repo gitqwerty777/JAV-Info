@@ -4,6 +4,7 @@ import json
 import requests
 import colorama
 from bs4 import BeautifulSoup
+from webpage_getter import WebPageGetter_JavLibrary, WebPageGetter_JavDB
 
 # TODO: find chinese title source website
 
@@ -30,6 +31,10 @@ class JAVInfoGetter:
 
         info = dict()
         link = self.GetWebContent(bangou)
+
+        if not link:
+            info["bangou"] = bangou
+            return info, False
 
         # print(self.soup.prettify())
         info["bangou"] = self.ParseBangou()
@@ -68,14 +73,18 @@ class JAVInfoGetter:
 class JAVInfoGetter_javlibrary(JAVInfoGetter):
     def __init__(self, setting, dataManager):
         super().__init__(setting, dataManager)
+        self.webPageGetter = WebPageGetter_JavLibrary(
+            cookieFilePath=self.setting.javlibraryCookieFilePath, waitTime=self.setting.getInfoInterval)  # TODO: move cookie and waittime to config
 
     def GetWebContent(self, bangou):
         link = "http://www.javlibrary.com/" + self.setting.language + \
             "/vl_searchbyid.php?keyword=" + bangou
-        response = requests.get(link)
-        self.soup = BeautifulSoup(response.text, "html.parser")
 
-        if self.soup.select_one(".videothumblist"):  # has multiple search result
+        source = self.webPageGetter.getPage(link)
+        self.soup = BeautifulSoup(source, "html.parser")
+
+        # has multiple search result
+        if self.soup.select_one(".videothumblist"):
             try:
                 link = "http://www.javlibrary.com/" + self.setting.language + "/" + \
                     self.soup.select_one(".videothumblist").select_one(
@@ -165,28 +174,18 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
 class JAVInfoGetter_javdb(JAVInfoGetter):
     def __init__(self, setting, dataManager):
         super().__init__(setting, dataManager)
+        self.webPageGetter = WebPageGetter_JavDB(
+            cookieFilePath=self.setting.javdbCookieFilePath, waitTime=self.setting.getInfoInterval)
 
     def GetWebContent(self, bangou):  # XXX: improve
         link = "http://javdb.com/search?q=" + bangou
-        response = requests.get(link)
-        self.soup = BeautifulSoup(response.text, "html.parser")
-        if not self.soup.select_one("#videos"):
+        source = self.webPageGetter.getPage(link)
+        if not source:
             return ""
-        try:  # TODO: check try range
-            link = "http://javdb.com/" + \
-                self.soup.select_one("#videos").select_one("a")[
-                    "href"] + "?locale=en"
-            if self.setting.javdbToken:
-                cookies = {"remember_me_token": self.setting.javdbToken}
-            else:
-                cookies = dict()
-            response = requests.get(link, cookies=cookies)
-            self.soup = BeautifulSoup(response.text, "html.parser")
-            infos = self.soup.select_one(
-                ".video-panel-info").select(".panel-block")
-        except:
-            # TODO: get web content failed
-            return link
+
+        self.soup = BeautifulSoup(source, "html.parser")
+        infos = self.soup.select_one(
+            ".movie-panel-info").select(".panel-block")
 
         self.infoDict = dict()
         for info in infos:

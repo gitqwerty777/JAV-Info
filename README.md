@@ -1,6 +1,8 @@
 # JAV-Info
 
-> A simple tool to rename local video files, download album image and thumbnails images using jav unique id(bangou)
+![](https://img.shields.io/github/downloads/gitqwerty777/JAV-Info/total.svg)
+
+> A simple tool to rename local video files by jav unique id(bangou); it can also download album image and thumbnails images
 
 ## Demo
 
@@ -8,44 +10,43 @@
 
 ## Usage
 
-Download Windows(.exe) version at release or using Python
+Download Windows(.exe) version at release or directly use Python
 
-### Python Requirement
+### Requirement
 
 - Python3.6 or newer
-- install following python packages(or by `requirements.txt`)
-
-```
-pip install requests
-pip install beautifulsoup4
-pip install colorama
-```
+- Install packages in `requirements.txt`
+- Put correct version of `ChromeDriver.exe` at `Path` from <https://chromedriver.chromium.org/downloads>
+- Modify `config.json` from `config-template.json`
 
 Usage: `python main.py`
 
 ## Config
 
-Change config in `config.json`
+This program will read config from `config.json`.
 
-| Key             | Description                                                                                                 |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| fileDir         | Input directory                                                                                             |
-| getInfoInterval | Time interval to retrieve data from source website in second, do not set too small                          |
-| fileNameFormat  | Format of new file name, see more below                                                                     |
-| language        | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |
-| saveAlbum       | Save album image in the same directory of video file                                                        |
-| saveThumb       | Save thumbnails in the same directory of video file                                                         |
-| dryRun          | Run without real execution                                                                                  |
-| maxFileLength   | Maximum file name length in bytes, reduce this value if "file name too long" error happens                  |
-| minFileSizeMB   | Minimum file size(in MB) to execute                                                                         |
-| renameCheck     | Ask before every rename operation                                                                           |
-| ignoreWords     | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
-| retryFailedDB   | Retrieve failed data in database from source website again                                                  |
-| javdbToken      | some queries from javdb needs token, login to javdb and get `remember_me_token` in cookie as token          |
+You can modify from `config-template.json`.
+
+| Key                      | Description                                                                                                 |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| fileDir                  | Input directory, Unix-like file path is preferred                                                           |
+| getInfoInterval          | Time interval to retrieve data from source website in second, do not set too small                          |
+| fileNameFormat           | Format of new file name, see detail below                                                                   |
+| language                 | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |
+| saveAlbum                | Save album image in the same directory of video file                                                        |
+| saveThumb                | Save thumbnails in the same directory of video file                                                         |
+| dryRun                   | Run without real execution                                                                                  |
+| maxFileLength            | Maximum file name length in bytes, reduce this value if "file name too long" error happens                  |
+| minFileSizeMB            | Minimum file size(in MB) to rename                                                                          |
+| renameCheck              | Ask before every rename operation                                                                           |
+| ignoreWords              | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
+| retryFailedDB            | Retrieve failed data in database from source website again                                                  |
+| javlibraryCookieFilePath | Your cookie files from website <https://www.javlibrary.com>                                                 |
+| javdbCookieFilePath      | Your cookie files from website <https://javdb.com>                                                          |
 
 ### Tags in fileNameFormat
 
-Recommend to include `{bangou}` in order to do further rename.
+Recommend to include `{bangou}` in filename in order to do further renaming.
 
 | Tags       | Description                                                     |
 | ---------- | --------------------------------------------------------------- |
@@ -73,7 +74,7 @@ Failed requests will also be saved, so clean the database if something went wron
 ## Note
 
 - Input filename should include bangou, or it cannot be renamed
-- If there exist multiple files that have the same bangou, they will be renamed with serial number, ordered by original file name
+- If there exist multiple files that have the same bangou, they will be renamed with the suffix serial number, ordered by original file name
 
 ## Future Work
 
@@ -86,13 +87,12 @@ Failed requests will also be saved, so clean the database if something went wron
   - use other method instead directly loading into memory
 - UI
   - interface to search local database
-- Add makefile
 - Config
   - verbose output
 - Crawler
-  - find database which has chinese title
+  - find other database which has chinese title
 
 ## Source Website
 
-- [javlibrary](http://javlibrary.com)
-- [javdb](http://javdb.com)
+- [javlibrary](https://www.javlibrary.com)
+- [javdb](https://javdb.com)
