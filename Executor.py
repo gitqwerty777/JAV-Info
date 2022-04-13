@@ -1,11 +1,10 @@
 import requests
-import colorama
 from getch import getch
 from pathlib import Path
-
-
-def lenInBytes(string):
-    return len(string.encode("utf-8"))
+import utils
+import re
+from utils import lenInBytes
+import sys
 
 
 class Executor:
@@ -14,6 +13,8 @@ class Executor:
         self.renameRecords = open("renameHistory.txt", "a", encoding="utf-8")
 
     def HandleFiles(self, info, bangou, fileNames):
+        print(
+            f"===== 2/3: handle bangou {utils.yellowStr(bangou)} =====")
         self.HandleBangou(info, fileNames[bangou][0])
 
         if len(fileNames[bangou]) > 1:  # need to rename files with index
@@ -23,8 +24,6 @@ class Executor:
             self.HandleFile(info, fileNames[bangou][0])
 
     def HandleBangou(self, info, path):  # only save one copy of album and thumb
-        print(
-            f"============== handle bangou {colorama.Back.YELLOW}{info['bangou']}{colorama.Back.RESET} ==================")
         if self.setting.saveAlbum:
             self.SaveAlbum(info, path)
         if self.setting.saveThumb:
@@ -32,10 +31,16 @@ class Executor:
 
     def HandleFile(self, info, path, index=-1):
         print(
-            f"============== handle file {colorama.Back.YELLOW}{str(path)}{colorama.Back.RESET} ==================")
+            f"===== 3/3: handle file {utils.yellowStr(str(path))} =====")
         self.Rename(info, path, index)
-        # TODO: fill video meta description in video file
+        # optional TODO: fill video meta description in video file
         # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
+
+    def getValidWindowsFileName(self, fileName):
+        """
+        https://docs.microsoft.com/zh-tw/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN
+        """
+        return re.sub(r"[><:\"/\\\|\?*]", "_", fileName)
 
     def Rename(self, info, path, index):
         newFileName = self.setting.fileNameFormat
@@ -48,22 +53,25 @@ class Executor:
                     infovalue = infovalue + "[" + element + "]"
             newFileName = newFileName.replace(infokey, infovalue)
 
+        if "win" in sys.platform:
+            newFileName = self.getValidWindowsFileName(newFileName)
+
         # handle multiple files with the same bangou
         numberStr = ("_" + str(index+1)) if (index != -1) else ""
         # handle file name too long error
         if lenInBytes(newFileName) + lenInBytes(numberStr) + lenInBytes(path.suffix) > self.setting.maxFileLength:
-            # TODO: colorize print()
-            print(f"File name too long: {newFileName}")
+            print(utils.redBackStr(f"File name too long: {newFileName}"))
             maxFileLength = self.setting.maxFileLength - \
                 lenInBytes(path.suffix) - lenInBytes(numberStr)
             while lenInBytes(newFileName) > maxFileLength:
                 newFileName = newFileName[0:-1]
-            print(f"After truncate file name: {newFileName}")
+            print(
+                f"After truncate file name: {utils.blueBackStr(newFileName)}")
         newName = newFileName + numberStr + path.suffix
 
         if path.name == newName:
             print(
-                f"File {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET} no need to rename")
+                f"File {utils.blueBackStr(str(path))} no need to rename")
             return
 
         self.DoRename(path, newName)
@@ -71,15 +79,14 @@ class Executor:
     def DoRename(self, path, newName):
         newPath = path.parents[0] / newName
 
-        print(f"Rename {colorama.Back.BLUE}{str(path)}{colorama.Back.RESET}\n" +
-              f"To     {colorama.Back.GREEN}{str(newPath)}{colorama.Back.RESET}")
+        print(f"Rename {utils.blueBackStr(str(path))}\n" +
+              f"To     {utils.greenBackStr(str(newPath))}")
 
         if self.setting.dryRun:
             return
 
         if self.setting.renameCheck:
-            print(
-                f"{colorama.Back.BLUE}Do you want to execute rename?(Y/n){colorama.Back.RESET}")
+            print(utils.blueBackStr(f"Do you want to execute rename?(Y/n)"))
             response = getch()
             print(response)
             if response.lower() == "n":
@@ -92,7 +99,7 @@ class Executor:
             path.rename(newPath)
         except Exception as e:
             print(
-                f"{colorama.Back.RED}Rename [{str(path)}] to [{str(newPath)}] failed{colorama.Back.RESET}")
+                utils.redBackStr(f"Rename [{str(path)}] to [{str(newPath)}] failed"))
             print(e)
 
     def SaveAlbum(self, info, path):
@@ -105,13 +112,13 @@ class Executor:
 
         if albumPath.exists():
             print(
-                f"Album {colorama.Back.BLUE}{str(albumPath)}{colorama.Back.RESET} already exists")
+                f"Album {utils.blueBackStr(str(albumPath))} already exists")
             return
         self.DoSaveAlbum(info["album"], albumPath)
 
     def DoSaveAlbum(self, fileURL, albumPath):
         print(
-            f"Save album {colorama.Back.GREEN}{str(albumPath)}{colorama.Back.RESET}")
+            f"Save album {utils.greenBackStr(str(albumPath))}")
 
         if self.setting.dryRun:
             return
@@ -132,14 +139,14 @@ class Executor:
 
             if filePath.exists():
                 print(
-                    f"Thumbnail {colorama.Back.BLUE}{str(filePath)}{colorama.Back.RESET} already exists")
+                    f"Thumbnail {utils.blueBackStr(str(filePath))} already exists")
                 continue
 
             self.DoSaveThumb(thumb, filePath)
 
     def DoSaveThumb(self, fileURL, filePath):
         print(
-            f"Save thumbnail {colorama.Back.GREEN}{str(filePath)}{colorama.Back.RESET}")
+            f"Save thumbnail {utils.greenBackStr(str(filePath))}")
 
         if self.setting.dryRun:
             return

@@ -1,4 +1,5 @@
 import colorama
+import utils
 from Setting import Setting
 from FileNameParser import FileNameParser
 from DataManager import DataManager
@@ -16,30 +17,37 @@ if __name__ == "__main__":
     executor = Executor(setting)
 
     if setting.dryRun:
-        print(f"{colorama.Back.RED}This is dry run version.\nSet dryRun to false in config.json to execute{colorama.Back.RESET}")
+        utils.logError(
+            f"This is dry run version.\nSet dryRun to false in config.json to execute")
     else:
-        print(f"{colorama.Back.RED}This is not dry run version.\nDry run is recommended before execution.\nDo you want to continue?(y/N){colorama.Back.RESET}")
+        utils.logError(
+            f"This is not dry run version.\nDry run is recommended before execution.\nDo you want to continue?(y/N)")
         response = getch()
-        print(response)
         if response.lower() != "y":
             exit(0)
 
-    fileNames = fileNameParser.GetFiles(setting.fileDir)
-    for bangou in fileNames:
-        for infoGetter in infoGetters:
-            info, success = infoGetter.GetInfo(bangou, str(fileNames[bangou]))
-            if success:
-                # TODO: add to database at here
-                break
-            else:
-                continue
-        if not success:
+    try:
+        fileNames = fileNameParser.GetFiles(setting.fileDir)
+        for bangou in fileNames:
+            info = None
+            success = False
             print(
-                f"{colorama.Back.RED}Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}{colorama.Back.RESET}")
-            dataManager.Add(info)
-            continue
-        executor.HandleFiles(info, bangou, fileNames)
-
-    dataManager.Save()
-    print("Press Any Button to Exit")
-    getch()
+                f"===== 1/2: get bangou info {utils.yellowStr(bangou)} =====")
+            for infoGetter in infoGetters:
+                info, success = infoGetter.GetInfo(
+                    bangou, str(fileNames[bangou]))
+                if success:
+                    dataManager.AddRecord(info)
+                    break
+                else:
+                    continue
+            if not success:
+                utils.logError(
+                    f"Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}")
+                continue
+            assert info
+            executor.HandleFiles(info, bangou, fileNames)
+    except Exception as e:
+        print(e)
+    finally:
+        dataManager.Save()

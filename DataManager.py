@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import utils
 
 
 class DataManager:
@@ -10,22 +11,19 @@ class DataManager:
         if not self.dbpath.exists():
             self.dbpath.touch()
             self.dbdata = {}
-        else:
-            with open(self.dbpath) as self.dbfile:
-                dbtext = self.dbfile.read()
-                if not dbtext:
-                    self.dbdata = {}
-                else:
-                    self.dbdata = json.loads(dbtext)
 
-        print("read db")
-        # print(self.dbdata)
+        with open(self.dbpath) as self.dbfile:
+            dbtext = self.dbfile.read()
+            if not dbtext:
+                self.dbdata = {}
+            else:
+                self.dbdata = json.loads(dbtext)
 
-    def Add(self, info):
+    def AddRecord(self, info):
         self.dbdata.update({info["bangou"]: info})
 
     def Save(self):
-        print("save db")
+        print(utils.whiteBackStr("save db"))
         with open(self.dbpath, "w") as self.dbfile:
             json.dump(self.dbdata, self.dbfile)
             self.dbfile.close()

@@ -1,8 +1,6 @@
 import re
-import time
 import json
 import requests
-import colorama
 from bs4 import BeautifulSoup
 from webpage_getter import WebPageGetter_JavLibrary, WebPageGetter_JavDB
 
@@ -57,15 +55,14 @@ class JAVInfoGetter:
             info["title"] = info["title"].replace(
                 info["bangou"], "").strip(" ")
 
-        self.dataManager.Add(info)
+        self.dataManager.AddRecord(info)
         print(json.dumps(info, indent=4, ensure_ascii=False))
 
+        # BUG: Weird, there are two bangous, maybe it's a bug
         if bangou != info["bangou"]:
             info2 = info.copy()
             info2["bangou"] = bangou
-            self.dataManager.Add(info2)
-        # XXX: use timer instead sleep
-        time.sleep(self.setting.getInfoInterval)
+            self.dataManager.AddRecord(info2)
 
         return info, True
 
@@ -184,8 +181,11 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
             return ""
 
         self.soup = BeautifulSoup(source, "html.parser")
-        infos = self.soup.select_one(
-            ".movie-panel-info").select(".panel-block")
+        try:
+            infos = self.soup.select_one(
+                ".movie-panel-info").select(".panel-block")
+        except:
+            return ""
 
         self.infoDict = dict()
         for info in infos:

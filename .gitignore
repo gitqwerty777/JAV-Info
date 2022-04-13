@@ -4,3 +4,5 @@ config.json
 db-*.json
 *-cookie.txt
 renameHistory.txt
+dist/
+build/
