@@ -1,11 +1,7 @@
 import mimetypes
 import re
-import pprint
 from pathlib import Path
-
-
-def CreatePrettyPrinter(stream=None):
-    return pprint.PrettyPrinter(indent=0, width=60, stream=stream)
+import utils
 
 
 class BangouHandler:  # abstract
@@ -74,6 +70,10 @@ class FileNameParser:
             GeneralBangouHandler(
                 GeneralLooseBangouHandler(None)))
 
+        self.prettyPrinterFile = utils.createPrettyPrinter(
+            open("FilenameToBangou.txt", "w", encoding="utf-8"))
+        self.prettyPrinter = utils.createPrettyPrinter()
+
     def GetFiles(self, fileDir):
         videoFileList = []
         path = Path(fileDir)
@@ -115,12 +115,9 @@ class FileNameParser:
             else:
                 fileNames[bangou] = [fileName]
 
-        f = open("FilenameToBangou.txt", "w", encoding="utf-8")
         print("Legal video files with bangou")
-        pp = CreatePrettyPrinter(f)
-        pp.pprint(fileNames)
-        pp = CreatePrettyPrinter()
-        pp.pprint(fileNames)
+        self.prettyPrinterFile.pprint(fileNames)
+        self.prettyPrinter.pprint(fileNames)
 
         return fileNames
 

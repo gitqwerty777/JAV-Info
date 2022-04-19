@@ -10,11 +10,12 @@ import sys
 class Executor:
     def __init__(self, setting):
         self.setting = setting
-        self.renameRecords = open("renameHistory.txt", "a", encoding="utf-8")
+        self.renameRecords = open(
+            "renameHistory.txt", "a", encoding="utf-8")  # TODO: config
 
     def HandleFiles(self, info, bangou, fileNames):
         print(
-            f"===== 2/3: handle bangou {utils.yellowStr(bangou)} =====")
+            f"===== 2/3: handle bangou {utils.yellowStr(bangou)}")
         self.HandleBangou(info, fileNames[bangou][0])
 
         if len(fileNames[bangou]) > 1:  # need to rename files with index
@@ -31,7 +32,7 @@ class Executor:
 
     def HandleFile(self, info, path, index=-1):
         print(
-            f"===== 3/3: handle file {utils.yellowStr(str(path))} =====")
+            f"===== 3/3: handle file {utils.yellowStr(str(path))}")
         self.Rename(info, path, index)
         # optional TODO: fill video meta description in video file
         # TODO: option: new folder for all video file, for the same actor, for the same tag # create link
@@ -60,7 +61,7 @@ class Executor:
         numberStr = ("_" + str(index+1)) if (index != -1) else ""
         # handle file name too long error
         if lenInBytes(newFileName) + lenInBytes(numberStr) + lenInBytes(path.suffix) > self.setting.maxFileLength:
-            print(utils.redBackStr(f"File name too long: {newFileName}"))
+            print(utils.blueBackStr(f"File name too long: {newFileName}"))
             maxFileLength = self.setting.maxFileLength - \
                 lenInBytes(path.suffix) - lenInBytes(numberStr)
             while lenInBytes(newFileName) > maxFileLength:
@@ -71,7 +72,7 @@ class Executor:
 
         if path.name == newName:
             print(
-                f"File {utils.blueBackStr(str(path))} no need to rename")
+                f"File {utils.grayBackStr(str(path))} no need to rename")
             return
 
         self.DoRename(path, newName)

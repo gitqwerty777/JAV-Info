@@ -7,15 +7,51 @@ from JAVInfoGetter import JAVInfoGetter_javlibrary, JAVInfoGetter_javdb
 from Executor import Executor
 from getch import getch
 
-if __name__ == "__main__":
-    colorama.init()
-    setting = Setting()
-    fileNameParser = FileNameParser(setting.minFileSizeMB, setting.ignoreWords)
-    dataManager = DataManager(setting)
-    infoGetters = [JAVInfoGetter_javlibrary(setting, dataManager), JAVInfoGetter_javdb(
-        setting, dataManager)]
-    executor = Executor(setting)
 
+class JAVInfoGetter:
+    def __init__(self, setting, fileNameParser, dataManager, infoGetters, executor):
+        self.setting = setting
+        self.fileNameParser = fileNameParser
+        self.dataManager = dataManager
+        self.infoGetters = infoGetters
+        self.executor = executor
+        self.renameFailedFile = open(
+            "renameFailedHistory.txt", "a", encoding="utf-8")  # TODO: filename to config
+
+    def getInfo(self):
+        try:
+            for fileDir in self.setting.fileDirs:
+                fileNames = fileNameParser.GetFiles(fileDir)
+                for bangou in fileNames:
+                    self.renameByBangou(bangou, fileNames)
+        except Exception as e:
+            print(e)
+        finally:
+            self.dataManager.Save()
+
+    def renameByBangou(self, bangou, fileNames):
+        info = None
+        success = False
+        print(
+            f"===== 1/3: get bangou info {utils.yellowStr(bangou)}")
+        for infoGetter in self.infoGetters:
+            # Get the first complete info
+            info, success = infoGetter.GetInfo(
+                bangou, str(fileNames[bangou]))
+            if success:
+                break
+        if not success:
+            utils.logError(
+                f"Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}")
+            utils.writeText(self.renameFailedFile,
+                            f"{bangou} {fileNames[bangou]}\n")
+            self.dataManager.AddRecord(info)
+            return
+        assert info
+        self.executor.HandleFiles(info, bangou, fileNames)
+
+
+def checkDryRun(setting):
     if setting.dryRun:
         utils.logError(
             f"This is dry run version.\nSet dryRun to false in config.json to execute")
@@ -26,28 +62,19 @@ if __name__ == "__main__":
         if response.lower() != "y":
             exit(0)
 
-    try:
-        fileNames = fileNameParser.GetFiles(setting.fileDir)
-        for bangou in fileNames:
-            info = None
-            success = False
-            print(
-                f"===== 1/2: get bangou info {utils.yellowStr(bangou)} =====")
-            for infoGetter in infoGetters:
-                info, success = infoGetter.GetInfo(
-                    bangou, str(fileNames[bangou]))
-                if success:
-                    dataManager.AddRecord(info)
-                    break
-                else:
-                    continue
-            if not success:
-                utils.logError(
-                    f"Get Info from bangou {bangou} failed. File name {str(fileNames[bangou])}")
-                continue
-            assert info
-            executor.HandleFiles(info, bangou, fileNames)
-    except Exception as e:
-        print(e)
-    finally:
-        dataManager.Save()
+
+if __name__ == "__main__":
+    colorama.init()
+
+    setting = Setting()
+    checkDryRun(setting)
+
+    fileNameParser = FileNameParser(setting.minFileSizeMB, setting.ignoreWords)
+    dataManager = DataManager(setting)
+    infoGetters = [JAVInfoGetter_javlibrary(setting, dataManager), JAVInfoGetter_javdb(
+        setting, dataManager)]
+    executor = Executor(setting)
+    javInfoGetter = JAVInfoGetter(
+        setting, fileNameParser, dataManager, infoGetters, executor)
+
+    javInfoGetter.getInfo()

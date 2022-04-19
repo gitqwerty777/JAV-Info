@@ -1,8 +1,7 @@
-# https://stackoverflow.com/a/510364/2678970
+# ref: https://stackoverflow.com/a/510364/2678970
 
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
+    """Gets a single character from standard input.  Does not echo to the screen."""
 
     def __init__(self):
         try:

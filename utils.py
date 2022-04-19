@@ -1,4 +1,9 @@
 import colorama
+import pprint
+
+
+def createPrettyPrinter(stream=None):
+    return pprint.PrettyPrinter(indent=0, width=60, stream=stream)
 
 
 def backColorStr(s, color):
@@ -7,6 +12,10 @@ def backColorStr(s, color):
 
 def foreColorStr(s, color):
     return f"{color}{s}{colorama.Fore.RESET}"
+
+
+def grayBackStr(s):
+    return backColorStr(s, colorama.Back.LIGHTMAGENTA_EX)
 
 
 def whiteBackStr(s):
@@ -35,3 +44,8 @@ def logError(s):
 
 def lenInBytes(string):
     return len(string.encode("utf-8"))
+
+
+def writeText(file, str):
+    file.write(str)
+    file.flush()
