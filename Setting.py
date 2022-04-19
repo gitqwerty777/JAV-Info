@@ -7,7 +7,7 @@ class Setting:
             settingJson = json.load(configFile)
 
         try:
-            self.fileDir = settingJson["fileDir"]
+            self.fileDirs = settingJson["fileDirs"]
             self.getInfoInterval = settingJson["getInfoInterval"]
             self.fileNameFormat = settingJson["fileNameFormat"]
             self.language = settingJson["language"]
@@ -24,4 +24,4 @@ class Setting:
             # TODO: enable db or not
         except:
             print("read config file failed")
-            exit(1)
+            exit(0)

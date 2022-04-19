@@ -16,7 +16,8 @@ Download Windows(.exe) version at release(Deprecated❗) or directly use Python
 
 - Python3.6 or newer
 - Install packages in `requirements.txt`
-- Put correct version of `ChromeDriver.exe` at `Path` from <https://chromedriver.chromium.org/downloads>
+- Put correct version of `ChromeDriver.exe` at `Path`
+  - Download from <https://chromedriver.chromium.org/downloads>
 - Modify `config.json` from `config-template.json`
 
 Usage: `python main.py`
@@ -29,7 +30,7 @@ You can modify from `config-template.json`.
 
 | Key                      | Description                                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| fileDir                  | Input directory, Unix-like file path is preferred                                                           |
+| fileDirs                 | Input directories, Unix-like file path is preferred                                                         |
 | getInfoInterval          | Time interval to retrieve data from source website in second, do not set too small                          |
 | fileNameFormat           | Format of new file name, see detail below                                                                   |
 | language                 | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |
@@ -48,20 +49,20 @@ You can modify from `config-template.json`.
 
 Recommend to include `{bangou}` in filename in order to do further renaming.
 
-| Tags       | Description                                                     |
-| ---------- | --------------------------------------------------------------- |
-| {bangou}   | The serial number of jav                                        |
-| {title}    | Title may include actors' name, guarantee not include bangou    |
-| {tags}     | Tags in source website                                          |
-| {director} |                                                                 |
-| {maker}    | Maker of the video, usually related to the first part of bangou |
-| {actors}   |                                                                 |
-| {duration} | The length of video in minutes                                  |
-| {date}     | Release date                                                    |
-| {rating}   | Rating in source website                                        |
-| {album}    | Link of album image, **not recommend to use**                   |
-| {thumbs}   | Link of thumbnails, **not recommend to use**                    |
-| {link}     | Link of information source, **not recommend to use**            |
+| Tags       | Description                                                            |
+| ---------- | ---------------------------------------------------------------------- |
+| {bangou}   | The unique ID of jav                                                   |
+| {title}    | Title may include actors' name, guarantee not include bangou           |
+| {tags}     | Tags in source website                                                 |
+| {director} |                                                                        |
+| {maker}    | Maker of the video, often related to the first(english) part of bangou |
+| {actors}   |                                                                        |
+| {duration} | The length of video in minutes                                         |
+| {date}     | Release date                                                           |
+| {rating}   | User rating from source website                                        |
+| {album}    | Link of album image, **not recommend to use**                          |
+| {thumbs}   | Link of thumbnails, **not recommend to use**                           |
+| {link}     | Link of information source, **not recommend to use**                   |
 
 ## Database
 
@@ -73,7 +74,7 @@ Failed requests will also be saved, so clean the database if something went wron
 
 ## Note
 
-- Input filename should include bangou, or it cannot be renamed
+- Input **filename** should include bangou, or it cannot be renamed
 - If there exist multiple files that have the same bangou, they will be renamed with the suffix serial number, ordered by original file name
 
 ## Future Work
@@ -82,15 +83,13 @@ Failed requests will also be saved, so clean the database if something went wron
   - fill video metadata in file
   - options for new folder
 - FileName
-  - fit various types of bangou
+  - fit more types of bangou
 - Database
   - use other method instead directly loading into memory
+  - find other database which has chinese title
 - UI
   - interface to search local database
-- Config
-  - verbose output
-- Crawler
-  - find other database which has chinese title
+
 
 ## Source Website
 
