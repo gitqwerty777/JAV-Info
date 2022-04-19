@@ -18,19 +18,21 @@ class JAVInfoGetter:
 
     def GetInfo(self, bangou, fileName):
         # TODO: move search database out of there
+        print(f"Try to get info from {self.__class__.__name__}")
         info = self.dataManager.Search(bangou)
         if info:
-            if info["title"]:
-                print(f"Find success info of {bangou} in db")
+            if "title" in info and info["title"]:
+                print(f"Find complete info of {bangou} in db")
                 return info, True
-            elif not self.setting.retryFailedDB:  # use failed info in db
-                print(f"Find failed info of {bangou} in db")
+            elif not self.setting.retryFailedDB:  # directly use incomplete info, no retry
+                print(f"Find incomplete info of {bangou} in db")
                 return info, False
 
         info = dict()
         link = self.GetWebContent(bangou)
 
         if not link:
+            print("Get Webpage Failed")
             info["bangou"] = bangou
             return info, False
 
@@ -48,6 +50,8 @@ class JAVInfoGetter:
         info["rating"] = self.ParseRating()
         info["link"] = link
 
+        self.dataManager.AddRecord(info)
+
         if not info["title"]:
             info["bangou"] = bangou
             return info, False
@@ -55,14 +59,13 @@ class JAVInfoGetter:
             info["title"] = info["title"].replace(
                 info["bangou"], "").strip(" ")
 
-        self.dataManager.AddRecord(info)
         print(json.dumps(info, indent=4, ensure_ascii=False))
 
         # BUG: Weird, there are two bangous, maybe it's a bug
         if bangou != info["bangou"]:
             info2 = info.copy()
             info2["bangou"] = bangou
-            self.dataManager.AddRecord(info2)
+            print(f"two bangous: {bangou} {info['bangou']}")
 
         return info, True
 
@@ -174,10 +177,11 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
         self.webPageGetter = WebPageGetter_JavDB(
             cookieFilePath=self.setting.javdbCookieFilePath, waitTime=self.setting.getInfoInterval)
 
-    def GetWebContent(self, bangou):  # XXX: improve
+    def GetWebContent(self, bangou):
         link = "http://javdb.com/search?q=" + bangou
-        source = self.webPageGetter.getPage(link)
-        if not source:
+        print(link)
+        source, simpletitle = self.webPageGetter.getPage(link)
+        if not source and not simpletitle:
             return ""
 
         self.soup = BeautifulSoup(source, "html.parser")
@@ -185,7 +189,12 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
             infos = self.soup.select_one(
                 ".movie-panel-info").select(".panel-block")
         except:
-            return ""
+            # not found, use simple title as info
+            print("Detail page not found, use simple title")
+            self.infoDict = dict()
+            self.infoDict["title"] = simpletitle
+            self.infoDict["ID"] = bangou
+            return link
 
         self.infoDict = dict()
         for info in infos:
@@ -204,6 +213,10 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
             return ""
 
     def ParseTitle(self, bangou):
+        try:
+            return self.infoDict["title"]
+        except:
+            pass
         try:
             return self.soup.select_one(".title").select_one("strong").getText()
         except:

@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
 
 
 class WebPageGetter(object):
@@ -36,14 +37,14 @@ class WebPageGetter(object):
         raise NotImplementedError
 
     def simpleGetPage(self, url):
+        print(f"Get page {url}")
         self.browser.get(self.baseUrl)
         self.addCookies()
         self.browser.get(url)
         time.sleep(self.waitTime)
 
     def __del__(self):
-        pass
-        # TODO:self.browser.close()
+        self.browser.close()
 
 
 class WebPageGetter_JavLibrary(WebPageGetter):
@@ -69,23 +70,25 @@ class WebPageGetter_JavDB(WebPageGetter):
 
     def getPage(self, url):
         self.simpleGetPage(url)
-        # button = self.browser.find_elements(
-        #     by=By.CLASS_NAME, value="is-success")
-        # if button:
-        #     button[0].click()
-        #     time.sleep(self.waitTime)
-
-        self.soup = BeautifulSoup(self.browser.page_source, 'html.parser')
-        if not self.soup.select_one("#videos"):
-            return ""
+        try:
+            WebDriverWait(self.browser, self.waitTime).until(
+                lambda x: x.find_element(By.ID, "videos"))
+        except Exception as e:
+            return "", ""
 
         videolink = "http://javdb.com/" + \
-            self.soup.select_one("#videos").select_one("a")[
-                "href"] + "?locale=en"
+            self.browser.find_element(
+                by=By.XPATH, value='//*[@id="videos"]/div/div[1]/a').get_attribute('pathname') + "?locale=en"
+        simpletitle = self.browser.find_element(
+            by=By.XPATH, value='//*[@id="videos"]/div/div[1]/a/div[3]').text
+        #print(f"videolink {videolink}")
+        #print(f"simpletitle {simpletitle}")
+
         self.simpleGetPage(videolink)
 
         # with open(url.split("=")[-1]+".html", "w", encoding="utf-8") as f:
-        #     f.write(self.browser.page_source)
+        # f.write(self.browser.page_source)
 
-        return self.browser.page_source
+        return self.browser.page_source, simpletitle
+
 
