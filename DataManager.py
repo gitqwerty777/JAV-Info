@@ -12,8 +12,8 @@ class DataManager:
             self.dbpath.touch()
             self.dbdata = {}
 
-        with open(self.dbpath) as self.dbfile:
-            dbtext = self.dbfile.read()
+        with open(self.dbpath, "r", encoding="utf-8") as dbfile:
+            dbtext = dbfile.read()
             if not dbtext:
                 self.dbdata = {}
             else:
@@ -24,9 +24,8 @@ class DataManager:
 
     def Save(self):
         print(utils.whiteBackStr("save db"))
-        with open(self.dbpath, "w") as self.dbfile:
-            json.dump(self.dbdata, self.dbfile)
-            self.dbfile.close()
+        json.dump(self.dbdata, open(self.dbpath, "w",
+                  encoding="utf-8"), ensure_ascii=False)
 
     def Search(self, bangou):
         if bangou in self.dbdata:

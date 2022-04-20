@@ -1,5 +1,7 @@
 {
-    "fileDir": "./demo_files",
+    "fileDirs": [
+        "./demo_files"
+    ],
     "ignoreWords": [
         "1080p"
     ],

@@ -17,7 +17,6 @@ class JAVInfoGetter:
         self.dataManager = dataManager
 
     def GetInfo(self, bangou, fileName):
-        # TODO: move search database out of there
         print(f"Try to get info from {self.__class__.__name__}")
         info = self.dataManager.Search(bangou)
         if info:
@@ -74,7 +73,7 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
     def __init__(self, setting, dataManager):
         super().__init__(setting, dataManager)
         self.webPageGetter = WebPageGetter_JavLibrary(
-            cookieFilePath=self.setting.javlibraryCookieFilePath, waitTime=self.setting.getInfoInterval)  # TODO: move cookie and waittime to config
+            cookieFilePath=self.setting.javlibraryCookieFilePath, waitTime=self.setting.getInfoInterval)
 
     def GetWebContent(self, bangou):
         link = "http://www.javlibrary.com/" + self.setting.language + \
@@ -170,8 +169,11 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
             return ""
 
 
-# TODO: now only support english version
 class JAVInfoGetter_javdb(JAVInfoGetter):
+    """
+    TODO: now only support english version
+    """
+
     def __init__(self, setting, dataManager):
         super().__init__(setting, dataManager)
         self.webPageGetter = WebPageGetter_JavDB(

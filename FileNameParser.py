@@ -2,6 +2,7 @@ import mimetypes
 import re
 from pathlib import Path
 import utils
+import json
 
 
 class BangouHandler:  # abstract
@@ -70,8 +71,18 @@ class FileNameParser:
             GeneralBangouHandler(
                 GeneralLooseBangouHandler(None)))
 
+        self.fileNames = dict()
+        # TODO: filename to config
+        self.filePath = Path("FilenameToBangou.txt")
+        if self.filePath.exists():
+            try:
+                self.fileNames = json.load(
+                    open(self.filePath, "r", encoding="utf-8"))
+            except:
+                pass
+
         self.prettyPrinterFile = utils.createPrettyPrinter(
-            open("FilenameToBangou.txt", "w", encoding="utf-8"))
+            open(self.filePath, "w", encoding="utf-8"))
         self.prettyPrinter = utils.createPrettyPrinter()
 
     def GetFiles(self, fileDir):
@@ -95,7 +106,6 @@ class FileNameParser:
             # else:
                 # print("unknown file extension: " + file.suffix)
 
-        fileNames = dict()
         for fileName in videoFileList:
             stat = fileName.stat()
             fileSizeMB = stat.st_size >> 20
@@ -109,17 +119,17 @@ class FileNameParser:
                 continue
 
             bangou = bangou.upper()
-            if bangou in fileNames:
-                fileNames[bangou].append(fileName)
-                fileNames[bangou].sort()
+            if bangou in self.fileNames:
+                self.fileNames[bangou].append(fileName)
+                self.fileNames[bangou].sort()
             else:
-                fileNames[bangou] = [fileName]
+                self.fileNames[bangou] = [fileName]
 
         print("Legal video files with bangou")
-        self.prettyPrinterFile.pprint(fileNames)
-        self.prettyPrinter.pprint(fileNames)
+        self.prettyPrinterFile.pprint(self.fileNames)
+        self.prettyPrinter.pprint(self.fileNames)
 
-        return fileNames
+        return self.fileNames
 
     def ParseBangou(self, fileName):
         fileName = fileName.lower()

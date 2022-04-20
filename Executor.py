@@ -11,7 +11,7 @@ class Executor:
     def __init__(self, setting):
         self.setting = setting
         self.renameRecords = open(
-            "renameHistory.txt", "a", encoding="utf-8")  # TODO: config
+            "renameHistory.txt", "a", encoding="utf-8")  # TODO: filename to config
 
     def HandleFiles(self, info, bangou, fileNames):
         print(
@@ -135,7 +135,7 @@ class Executor:
 
         for index, thumb in enumerate(info["thumbs"]):
             fileName = info["bangou"] + "_thumb" + \
-                str(index) + ".jpg"  # TODO: fill leading 0 of index
+                str(index).zfill(2) + ".jpg"
             filePath = Path(path.parents[0] / fileName)
 
             if filePath.exists():
