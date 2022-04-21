@@ -20,10 +20,11 @@ class JAVInfoGetter:
 
     def getInfo(self):
         try:
+            fileNames = []
             for fileDir in self.setting.fileDirs:
                 fileNames = fileNameParser.GetFiles(fileDir)
-                for bangou in fileNames:
-                    self.renameByBangou(bangou, fileNames)
+            for bangou in fileNames:
+                self.renameByBangou(bangou, fileNames)
         except Exception as e:
             print(e)
         finally:

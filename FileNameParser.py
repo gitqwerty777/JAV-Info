@@ -73,16 +73,9 @@ class FileNameParser:
 
         self.fileNames = dict()
         # TODO: filename to config
-        self.filePath = Path("FilenameToBangou.txt")
-        if self.filePath.exists():
-            try:
-                self.fileNames = json.load(
-                    open(self.filePath, "r", encoding="utf-8"))
-            except:
-                pass
-
+        filePath = Path("BangouToFilename.txt")
         self.prettyPrinterFile = utils.createPrettyPrinter(
-            open(self.filePath, "w", encoding="utf-8"))
+            open(filePath, "w", encoding="utf-8"))
         self.prettyPrinter = utils.createPrettyPrinter()
 
     def GetFiles(self, fileDir):

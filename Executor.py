@@ -5,13 +5,15 @@ import utils
 import re
 from utils import lenInBytes
 import sys
+from datetime import date
 
 
 class Executor:
     def __init__(self, setting):
         self.setting = setting
+        day = date.today().strftime("%Y%m%d")
         self.renameRecords = open(
-            "renameHistory.txt", "a", encoding="utf-8")  # TODO: filename to config
+            f"renameHistory_{day}.txt", "a", encoding="utf-8")  # TODO: filename to config
 
     def HandleFiles(self, info, bangou, fileNames):
         print(
