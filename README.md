@@ -28,22 +28,22 @@ This program will read config from `config.json`.
 
 You can modify from `config-template.json`.
 
-| Key                      | Description                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| fileDirs                 | Input directories, Unix-like file path is preferred                                                         |
-| getInfoInterval          | Time interval to retrieve data from source website in second, do not set too small                          |
-| fileNameFormat           | Format of new file name, see detail below                                                                   |
-| language                 | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                |
-| saveAlbum                | Save album image in the same directory of video file                                                        |
-| saveThumb                | Save thumbnails in the same directory of video file                                                         |
-| dryRun                   | Run without real execution                                                                                  |
-| maxFileLength            | Maximum file name length in bytes, reduce this value if "file name too long" error happens                  |
-| minFileSizeMB            | Minimum file size(in MB) to rename                                                                          |
-| renameCheck              | Ask before every rename operation                                                                           |
-| ignoreWords              | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will parse as `p-123` |
-| retryFailedDB            | Retrieve failed data in database from source website again                                                  |
-| javlibraryCookieFilePath | Your cookie files from website <https://www.javlibrary.com>                                                 |
-| javdbCookieFilePath      | Your cookie files from website <https://javdb.com>                                                          |
+| Key                      | Description                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| fileDirs                 | Input directories, Unix-like file path is preferred                                                                      |
+| getInfoInterval          | Time interval to retrieve data from source website in second, do not set too small                                       |
+| fileNameFormat           | Format of new file name, see detail below                                                                                |
+| language                 | `tw`, `cn`, `en`, `ja` for javlibrary, english only in javdb                                                             |
+| saveAlbum                | Save album image in the same directory of video file                                                                     |
+| saveThumb                | Save thumbnails in the same directory of video file                                                                      |
+| dryRun                   | Run without real execution                                                                                               |
+| maxFileLength            | Maximum file name length in bytes, reduce this value if "file name too long" error happens                               |
+| minFileSizeMB            | Minimum file size(in MB) to rename                                                                                       |
+| renameCheck              | Ask before every rename operation                                                                                        |
+| ignoreWords              | Ignore list of words in filename to prevent parse bangou error, e.g., "1080p-123.mp4" will possibly be parsed as `p-123` |
+| retryFailedDB            | Retrieve failed data in database from source website again                                                               |
+| javlibraryCookieFilePath | Your logined cookie files from website <https://www.javlibrary.com>                                                      |
+| javdbCookieFilePath      | Your logined cookie files from website <https://javdb.com>                                                               |
 
 ### Tags in fileNameFormat
 

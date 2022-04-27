@@ -71,14 +71,13 @@ class FileNameParser:
             GeneralBangouHandler(
                 GeneralLooseBangouHandler(None)))
 
-        self.fileNames = dict()
         # TODO: filename to config
         filePath = Path("BangouToFilename.txt")
         self.prettyPrinterFile = utils.createPrettyPrinter(
             open(filePath, "w", encoding="utf-8"))
         self.prettyPrinter = utils.createPrettyPrinter()
 
-    def GetFiles(self, fileDir):
+    def GetFiles(self, fileNames, fileDir):
         videoFileList = []
         path = Path(fileDir)
 
@@ -112,17 +111,16 @@ class FileNameParser:
                 continue
 
             bangou = bangou.upper()
-            if bangou in self.fileNames:
-                self.fileNames[bangou].append(fileName)
-                self.fileNames[bangou].sort()
+            if bangou in fileNames:
+                fileNames[bangou].append(fileName)
+                fileNames[bangou].sort()
             else:
-                self.fileNames[bangou] = [fileName]
+                fileNames[bangou] = [fileName]
 
-        print("Legal video files with bangou")
-        self.prettyPrinterFile.pprint(self.fileNames)
-        self.prettyPrinter.pprint(self.fileNames)
-
-        return self.fileNames
+        # print("Legal video files with bangou")
+        self.prettyPrinterFile.pprint(fileNames)
+        # self.prettyPrinter.pprint(fileNames)
+        return fileNames
 
     def ParseBangou(self, fileName):
         fileName = fileName.lower()
