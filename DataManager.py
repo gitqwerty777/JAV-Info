@@ -1,12 +1,11 @@
 import json
-from pathlib import Path
 import utils
 
 
 class DataManager:
     def __init__(self, setting):
         self.setting = setting
-        self.dbpath = Path("db-" + self.setting.language + ".json")
+        self.dbpath = utils.outPath("db", "db-" + self.setting.language + ".json")
 
         if not self.dbpath.exists():
             self.dbpath.touch()

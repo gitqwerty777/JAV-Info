@@ -3,6 +3,10 @@ __pycache__
 config.json
 db-*.json
 *-cookie.txt
-renameHistory.txt
+logs/
+cookies/
+db/
 dist/
 build/
+venv/
+.venv/

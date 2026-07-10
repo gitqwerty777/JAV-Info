@@ -15,6 +15,6 @@
     "minFileSizeMB": 0,
     "renameCheck": false,
     "retryFailedDB": true,
-    "javlibraryCookieFilePath": "./javlibrary-cookie.txt",
-    "javdbCookieFilePath": "./javdb-cookie.txt"
+    "javlibraryCookieFilePath": "./cookies/javlibrary-cookie.txt",
+    "javdbCookieFilePath": "./cookies/javdb-cookie.txt"
 }

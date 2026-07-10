@@ -13,7 +13,7 @@ class Executor:
         self.setting = setting
         day = date.today().strftime("%Y%m%d")
         self.renameRecords = open(
-            f"renameHistory_{day}.txt", "a", encoding="utf-8")  # TODO: filename to config
+            utils.outPath("logs", f"renameHistory_{day}.txt"), "a", encoding="utf-8")
 
     def HandleFiles(self, info, bangou, fileNames):
         print(

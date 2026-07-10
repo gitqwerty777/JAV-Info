@@ -71,8 +71,7 @@ class FileNameParser:
             GeneralBangouHandler(
                 GeneralLooseBangouHandler(None)))
 
-        # TODO: filename to config
-        filePath = Path("BangouToFilename.txt")
+        filePath = utils.outPath("logs", "BangouToFilename.txt")
         self.prettyPrinterFile = utils.createPrettyPrinter(
             open(filePath, "w", encoding="utf-8"))
         self.prettyPrinter = utils.createPrettyPrinter()

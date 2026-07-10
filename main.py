@@ -16,7 +16,7 @@ class JAVInfoGetter:
         self.infoGetters = infoGetters
         self.executor = executor
         self.renameFailedFile = open(
-            "renameFailedHistory.txt", "a", encoding="utf-8")  # TODO: filename to config
+            utils.outPath("logs", "renameFailedHistory.txt"), "a", encoding="utf-8")
 
     def getInfo(self):
         try:

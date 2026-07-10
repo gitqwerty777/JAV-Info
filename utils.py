@@ -1,5 +1,12 @@
 import colorama
 import pprint
+from pathlib import Path
+
+
+def outPath(folder, name):
+    """Return folder/name for an output file, creating folder if needed."""
+    Path(folder).mkdir(parents=True, exist_ok=True)
+    return Path(folder) / name
 
 
 def createPrettyPrinter(stream=None):
