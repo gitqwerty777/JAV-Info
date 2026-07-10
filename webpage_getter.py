@@ -1,4 +1,5 @@
 import time
+import shutil
 from pathlib import Path
 
 from http import cookiejar
@@ -9,6 +10,25 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 
+def resolveChromeBinary():
+    """
+    Selenium picks chrome.exe from PATH. If that is a Scoop shim, it forks the
+    real Chrome and exits, which ChromeDriver misreports as "Chrome instance
+    exited". Resolve the real binary from the shim's sidecar .shim file.
+    Returns None when Chrome is not a Scoop shim (leave Selenium to auto-detect).
+    """
+    chrome = shutil.which("chrome")
+    if not chrome:
+        return None
+    shim = Path(chrome).with_suffix(".shim")
+    if not shim.exists():
+        return None
+    for line in shim.read_text(encoding="utf-8").splitlines():
+        if line.strip().startswith("path"):
+            return line.split("=", 1)[1].strip().strip('"')
+    return None
+
+
 class WebPageGetter(object):
     def __init__(self, cookieFilePath, waitTime):
         """
@@ -17,6 +37,9 @@ class WebPageGetter(object):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         options.add_argument("--ignore-certificate-errors-spki-list")
+        chromeBinary = resolveChromeBinary()
+        if chromeBinary:
+            options.binary_location = chromeBinary
         self.browser = webdriver.Chrome(options=options)
         self.cookies = cookiejar.MozillaCookieJar(cookieFilePath)
         self.cookies.load()
