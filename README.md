@@ -14,13 +14,14 @@ Download Windows(.exe) version at release(Deprecated❗) or directly use Python
 
 ### Requirement
 
-- Python3.6 or newer
-- Install packages in `requirements.txt`
+- Python3.8 or newer
+- [Poetry](https://python-poetry.org/) for dependency management
+- Install dependencies with `poetry install`
 - Put correct version of `ChromeDriver.exe` at `Path`
   - Download from <https://chromedriver.chromium.org/downloads>
 - Modify `config.json` from `config-template.json`
 
-Usage: `python main.py`
+Usage: `poetry run python main.py`
 
 ## Config
 
