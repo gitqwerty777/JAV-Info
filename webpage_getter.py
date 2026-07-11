@@ -67,7 +67,12 @@ class WebPageGetter(object):
         time.sleep(self.waitTime)
 
     def __del__(self):
-        self.browser.close()
+        browser = getattr(self, "browser", None)
+        if browser:
+            try:
+                browser.quit()
+            except Exception:
+                pass
 
 
 class WebPageGetter_JavLibrary(WebPageGetter):

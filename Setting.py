@@ -22,6 +22,6 @@ class Setting:
             self.javlibraryCookieFilePath = settingJson["javlibraryCookieFilePath"]
             self.javdbCookieFilePath = settingJson["javdbCookieFilePath"]
             # TODO: enable db or not
-        except:
-            print("read config file failed")
-            exit(0)
+        except KeyError as e:
+            print(f"config.json is missing required key: {e}")
+            exit(1)

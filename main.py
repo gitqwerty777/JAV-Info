@@ -22,12 +22,14 @@ class JAVInfoGetter:
         try:
             fileNames = {}
             for fileDir in self.setting.fileDirs:
-                fileNames = fileNameParser.GetFiles(
+                fileNames = self.fileNameParser.GetFiles(
                     fileNames, fileDir)
             for bangou in fileNames:
-                self.renameByBangou(bangou, fileNames)
-        except Exception as e:
-            print(e)
+                try:
+                    self.renameByBangou(bangou, fileNames)
+                except Exception as e:
+                    utils.logError(
+                        f"Failed to handle bangou {bangou}: {e}")
         finally:
             self.dataManager.Save()
 

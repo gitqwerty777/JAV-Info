@@ -90,8 +90,9 @@ class FileNameParser:
         for file in path.glob("**/*"):
             if file.is_dir():
                 continue
-            if file.suffix in mimetypes.types_map:
-                mimetype = mimetypes.types_map[file.suffix]
+            suffix = file.suffix.lower()
+            if suffix in mimetypes.types_map:
+                mimetype = mimetypes.types_map[suffix]
                 if "video" in mimetype:
                     videoFileList.append(file)
             # else:
