@@ -30,6 +30,11 @@ def resolveChromeBinary():
 
 
 class WebPageGetter(object):
+    # Seconds to wait for a page element to appear. Kept separate from the
+    # rate-limit interval (waitTime) so a small polite delay does not become a
+    # too-short page-load timeout.
+    PAGE_WAIT_TIMEOUT = 15
+
     def __init__(self, cookieFilePath, waitTime):
         """
         Put correct version of ChromeDriver.exe at path from https://chromedriver.chromium.org/downloads
@@ -99,24 +104,22 @@ class WebPageGetter_JavDB(WebPageGetter):
     def getPage(self, url):
         self.simpleGetPage(url)
         try:
-            WebDriverWait(self.browser, self.waitTime).until(
-                lambda x: x.find_element(By.ID, "videos"))
+            WebDriverWait(self.browser, self.PAGE_WAIT_TIMEOUT).until(
+                lambda x: x.find_element(By.CLASS_NAME, "movie-list"))
         except Exception as e:
+            print("get page failed")
             return "", ""
 
+        firstResult = self.browser.find_element(
+            By.CSS_SELECTOR, ".movie-list .item a")
         videolink = "http://javdb.com/" + \
-            self.browser.find_element(
-                by=By.XPATH, value='//*[@id="videos"]/div/div[1]/a').get_attribute('pathname') + "?locale=en"
-        simpletitle = self.browser.find_element(
-            by=By.XPATH, value='//*[@id="videos"]/div/div[1]/a/div[3]').text
-        #print(f"videolink {videolink}")
-        #print(f"simpletitle {simpletitle}")
+            firstResult.get_attribute("pathname") + "?locale=en"
+        try:
+            simpletitle = firstResult.find_element(
+                By.CSS_SELECTOR, ".video-title").text
+        except Exception:
+            simpletitle = ""
 
         self.simpleGetPage(videolink)
 
-        # with open(url.split("=")[-1]+".html", "w", encoding="utf-8") as f:
-        # f.write(self.browser.page_source)
-
         return self.browser.page_source, simpletitle
-
-

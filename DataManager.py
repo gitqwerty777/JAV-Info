@@ -18,8 +18,8 @@ class DataManager:
             else:
                 self.dbdata = json.loads(dbtext)
 
-    def AddRecord(self, info):
-        self.dbdata.update({info["bangou"]: info})
+    def AddRecord(self, info, key=None):
+        self.dbdata.update({key or info["bangou"]: info})
 
     def Save(self):
         print(utils.whiteBackStr("save db"))

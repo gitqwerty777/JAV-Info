@@ -1,6 +1,5 @@
 import re
 import json
-import requests
 from bs4 import BeautifulSoup
 from webpage_getter import WebPageGetter_JavLibrary, WebPageGetter_JavDB
 
@@ -60,11 +59,11 @@ class JAVInfoGetter:
 
         print(json.dumps(info, indent=4, ensure_ascii=False))
 
-        # BUG: Weird, there are two bangous, maybe it's a bug
+        # javdb may return a canonical bangou (e.g. STAR-777 -> STARS-777).
+        # Cache the same record under the queried bangou so the next run hits
+        # the cache instead of re-scraping.
         if bangou != info["bangou"]:
-            info2 = info.copy()
-            info2["bangou"] = bangou
-            print(f"two bangous: {bangou} {info['bangou']}")
+            self.dataManager.AddRecord(info, bangou)
 
         return info, True
 
@@ -88,9 +87,9 @@ class JAVInfoGetter_javlibrary(JAVInfoGetter):
                 link = "http://www.javlibrary.com/" + self.setting.language + "/" + \
                     self.soup.select_one(".videothumblist").select_one(
                         ".video").select_one("a")["href"]
-                response = requests.get(link)
-                self.soup = BeautifulSoup(response.text, "html.parser")
-            except:
+                source = self.webPageGetter.getPage(link)
+                self.soup = BeautifulSoup(source, "html.parser")
+            except Exception:
                 link = ""
 
         return link
@@ -220,7 +219,7 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
         except:
             pass
         try:
-            return self.soup.select_one(".title").select_one("strong").getText()
+            return self.soup.select_one(".current-title").getText()
         except:
             return ""
 
@@ -273,7 +272,8 @@ class JAVInfoGetter_javdb(JAVInfoGetter):
     def ParseThumbs(self):
         try:
             imgs = self.soup.select_one(".preview-images").select("a")
-            imgs = [img["href"] for img in imgs]
+            imgs = [img["href"] for img in imgs
+                    if img["href"].startswith("http")]
             return imgs
         except:
             return ""
