@@ -25,3 +25,6 @@ class Setting:
         except KeyError as e:
             print(f"config.json is missing required key: {e}")
             exit(1)
+
+        # Optional: skip files whose name starts with any of these prefixes.
+        self.skipPrefixes = settingJson.get("skipPrefixes", [])

@@ -10,3 +10,8 @@ dist/
 build/
 venv/
 .venv/
+# SeleniumBase runtime artifacts
+downloaded_files/
+latest_logs/
+archived_logs/
+assets/

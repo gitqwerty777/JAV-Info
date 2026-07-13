@@ -73,7 +73,8 @@ if __name__ == "__main__":
     setting = Setting()
     checkDryRun(setting)
 
-    fileNameParser = FileNameParser(setting.minFileSizeMB, setting.ignoreWords)
+    fileNameParser = FileNameParser(
+        setting.minFileSizeMB, setting.ignoreWords, setting.skipPrefixes)
     dataManager = DataManager(setting)
     infoGetters = [JAVInfoGetter_javlibrary(setting, dataManager), JAVInfoGetter_javdb(
         setting, dataManager)]

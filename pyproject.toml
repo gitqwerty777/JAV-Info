@@ -4,12 +4,13 @@ version = "0.1.0"
 description = "A simple tool to rename local video files by JAV bangou; can also download album and thumbnail images."
 authors = [{ name = "gitqwerty777" }]
 readme = "README.md"
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "beautifulsoup4 (>=4.10.0,<5.0.0)",
     "colorama (>=0.4.4,<0.5.0)",
     "requests (>=2.26.0,<3.0.0)",
     "selenium (>=4.1.3,<5.0.0)",
+    "seleniumbase (>=4.50.0,<5.0.0)",
 ]
 
 [tool.poetry]

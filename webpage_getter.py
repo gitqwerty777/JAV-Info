@@ -9,6 +9,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from seleniumbase import Driver
+
 
 def resolveChromeBinary():
     """
@@ -81,12 +83,39 @@ class WebPageGetter(object):
 
 
 class WebPageGetter_JavLibrary(WebPageGetter):
+    # javlibrary sits behind Cloudflare's JS challenge, which blocks plain
+    # Selenium. SeleniumBase UC mode (undetected + disconnect/reconnect) slips
+    # past it. Seconds to stay disconnected during each open:
+    RECONNECT_TIME = 8
+
     def __init__(self, cookieFilePath, waitTime):
-        super().__init__(cookieFilePath, waitTime)
         self.baseUrl = "https://www.javlibrary.com/"
+        chromeBinary = resolveChromeBinary()
+        driverArgs = {"uc": True, "headless": True}
+        if chromeBinary:
+            driverArgs["binary_location"] = chromeBinary
+        self.browser = Driver(**driverArgs)
+        self.cookies = cookiejar.MozillaCookieJar(cookieFilePath)
+        self.cookies.load()
+        self.waitTime = waitTime
 
     def getPage(self, url):
-        self.simpleGetPage(url)
+        print(f"Get page {url}")
+        # Clear Cloudflare on the base domain, add the login cookies, then open
+        # the target the same way.
+        self.browser.uc_open_with_reconnect(
+            self.baseUrl, reconnect_time=self.RECONNECT_TIME)
+        self.addCookies()
+        for _ in range(2):
+            self.browser.uc_open_with_reconnect(
+                url, reconnect_time=self.RECONNECT_TIME)
+            time.sleep(self.waitTime)
+            if not self.isBlockedByCloudflare():
+                break
+            print("javlibrary: Cloudflare challenge detected, retrying...")
+        else:
+            print("javlibrary: blocked by Cloudflare challenge, no data returned")
+
         button = self.browser.find_elements(
             by=By.CLASS_NAME, value="btnAdultAgree")
         if button:
@@ -94,6 +123,10 @@ class WebPageGetter_JavLibrary(WebPageGetter):
             time.sleep(self.waitTime)
 
         return self.browser.page_source
+
+    def isBlockedByCloudflare(self):
+        title = self.browser.title or ""
+        return "cf_chl" in self.browser.page_source.lower() or "請稍候" in title
 
 
 class WebPageGetter_JavDB(WebPageGetter):

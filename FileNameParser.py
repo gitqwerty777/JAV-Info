@@ -63,9 +63,10 @@ class GeneralLooseBangouHandler(BangouHandler):
 
 
 class FileNameParser:
-    def __init__(self, minFileSizeMB, ignoreWords):
+    def __init__(self, minFileSizeMB, ignoreWords, skipPrefixes=()):
         self.minFileSizeMB = minFileSizeMB
         self.ignoreWords = ignoreWords
+        self.skipPrefixes = tuple(skipPrefixes)
         # TODO: fit different bangou format
         self.bangouHandler = FC2BangouHandler(
             GeneralBangouHandler(
@@ -99,6 +100,9 @@ class FileNameParser:
                 # print("unknown file extension: " + file.suffix)
 
         for fileName in videoFileList:
+            if self.skipPrefixes and fileName.name.startswith(self.skipPrefixes):
+                continue
+
             stat = fileName.stat()
             fileSizeMB = stat.st_size >> 20
             if self.minFileSizeMB > fileSizeMB:

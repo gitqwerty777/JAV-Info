@@ -23,8 +23,8 @@ class DataManager:
 
     def Save(self):
         print(utils.whiteBackStr("save db"))
-        json.dump(self.dbdata, open(self.dbpath, "w",
-                  encoding="utf-8"), ensure_ascii=False)
+        with open(self.dbpath, "w", encoding="utf-8") as dbfile:
+            json.dump(self.dbdata, dbfile, ensure_ascii=False)
 
     def Search(self, bangou):
         if bangou in self.dbdata:
